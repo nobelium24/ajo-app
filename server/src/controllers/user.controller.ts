@@ -155,27 +155,34 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
     let groupName = req.body.groupName
     let passcode = req.body.passcode
     try {
-        await userModel.findOne({ email: email }, (user: NewUser) => {
-            if (!user) {
-                res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false })
-            } else {
-                groupModel.findOne({ groupName: groupName }, (group: Group2) => {
-                    if (!group) {
-                        res.send({ message: "Group dosen't exist. kindly create a new group", status: false })
-                    } else {
-                        try {
-                            bcryptjs.compare(passcode, group.passcode, (err, same) => {
-                                if (same) {
-                                    groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email } } })
-                                }
-                            })
-                        } catch (error) {
-                            error
+        await userModel.findOne({ email: email }).then(
+            (user: NewUser) => {
+                if (!user) {
+                    res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false })
+                } else {
+                    groupModel.findOne({ groupName: groupName }, (err: string, group: Group2) => {
+                        console.log(group)
+                        if (err) {
+                            console.log(err);
+                        } else if (!group) {
+                            res.send({ message: "Group dosen't exist. kindly create a new group", status: false })
+                        } else {
+                            try {
+                                bcryptjs.compare(passcode, group.passcode, (err, same) => {
+                                    if (same) {
+                                        groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email:email } } }).then((ram)=>(console.log(ram)
+                                        ))
+                                        res.send({ message: "Added to group successfuly", status: true })
+                                    }
+                                })
+                            } catch (error) {
+                                error
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
-        })
+        )
     } catch (error) {
         return next(error)
     }
@@ -185,5 +192,5 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
 const test = (req: Request, res: Response) => {
 
 }
-export { registerUser, signIn, createGroup, joinGroup,test }
+export { registerUser, signIn, createGroup, joinGroup, test }
 // module.exports = { registerUser }

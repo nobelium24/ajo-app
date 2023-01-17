@@ -155,20 +155,25 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     let groupName = req.body.groupName;
     let passcode = req.body.passcode;
     try {
-        yield user_model_1.default.findOne({ email: email }, (user) => {
+        yield user_model_1.default.findOne({ email: email }).then((user) => {
             if (!user) {
                 res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false });
             }
             else {
-                group_model_1.default.findOne({ groupName: groupName }, (group) => {
-                    if (!group) {
+                group_model_1.default.findOne({ groupName: groupName }, (err, group) => {
+                    console.log(group);
+                    if (err) {
+                        console.log(err);
+                    }
+                    else if (!group) {
                         res.send({ message: "Group dosen't exist. kindly create a new group", status: false });
                     }
                     else {
                         try {
                             bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
                                 if (same) {
-                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email } } });
+                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)));
+                                    res.send({ message: "Added to group successfuly", status: true });
                                 }
                             });
                         }
