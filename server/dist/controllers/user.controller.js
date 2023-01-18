@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.test = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
+exports.test = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
 //@ts-ignore
 const user_model_1 = __importDefault(require("../models/user.model"));
 const group_model_1 = __importDefault(require("../models/group.model"));
@@ -170,15 +170,17 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                     }
                     else {
                         try {
-                            bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
-                                if (same) {
-                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)));
-                                    res.send({ message: "Added to group successfuly", status: true });
-                                }
-                            });
+                            if (group.passcode != undefined) {
+                                bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
+                                    if (same) {
+                                        group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)));
+                                        res.send({ message: "Added to group successfuly", status: true });
+                                    }
+                                });
+                            }
                         }
                         catch (error) {
-                            error;
+                            return next(error);
                         }
                     }
                 });
@@ -190,6 +192,36 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.joinGroup = joinGroup;
+const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let amount = req.body.amount;
+    let groupName = req.body.groupName;
+    let email = req.body.email;
+    try {
+        yield group_model_1.default.findOne({ groupName: groupName }).then((group) => {
+            if (!group) {
+                res.send({ message: "You can't make payment as you do not belong to a group", status: false });
+            }
+            else {
+                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } }).then((ram) => {
+                    console.log(ram);
+                    switch (ram.acknowledged) {
+                        case true:
+                            res.send({ message: "Payment made successfuly", status: true });
+                            break;
+                        case false:
+                            res.send({ message: "Payment failed", status: false });
+                        default:
+                            break;
+                    }
+                });
+            }
+        });
+    }
+    catch (error) {
+        return next(error);
+    }
+});
+exports.addGroupAmount = addGroupAmount;
 const test = (req, res) => {
 };
 exports.test = test;

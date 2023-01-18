@@ -108,6 +108,7 @@ const createGroup = (req: Request, res: Response) => {
     const groupName: string = req.body.groupName
     const passcode: string = req.body.passcode
     const newGroup: NewGroup = { groupName: groupName, passcode: passcode, groupMembers: [] }
+
     userModel.findOne({ email: email }, (err: string, user: NewUser) => {
         if (err) {
             console.log(err);
@@ -144,10 +145,11 @@ const createGroup = (req: Request, res: Response) => {
 }
 
 interface Group2 {
-    readonly _id: string,
-    groupName: string,
-    passcode: string,
-    groupMembers: []
+    readonly _id?: string,
+    groupName?: string,
+    passcode?: string,
+    groupMembers?: [],
+    amount?: number[]
 }
 
 const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
@@ -168,15 +170,17 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                             res.send({ message: "Group dosen't exist. kindly create a new group", status: false })
                         } else {
                             try {
-                                bcryptjs.compare(passcode, group.passcode, (err, same) => {
-                                    if (same) {
-                                        groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email:email } } }).then((ram)=>(console.log(ram)
-                                        ))
-                                        res.send({ message: "Added to group successfuly", status: true })
-                                    }
-                                })
+                                if (group.passcode != undefined) {
+                                    bcryptjs.compare(passcode, group.passcode, (err, same) => {
+                                        if (same) {
+                                            groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)
+                                            ))
+                                            res.send({ message: "Added to group successfuly", status: true })
+                                        }
+                                    })
+                                }
                             } catch (error) {
-                                error
+                                return next(error)
                             }
                         }
                     })
@@ -189,8 +193,40 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
+const addGroupAmount = async (req: Request, res: Response, next: NextFunction) => {
+    let amount = req.body.amount
+    let groupName = req.body.groupName
+    let email = req.body.email
+    try {
+        await groupModel.findOne({ groupName: groupName }).then(
+            (group: Group2) => {
+                if (!group) {
+                    res.send({ message: "You can't make payment as you do not belong to a group", status: false })
+                } else {
+                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount:amount } } }).then((ram) => {
+                        console.log(ram);
+                        switch (ram.acknowledged) {
+                            case true:
+                                res.send({ message: "Payment made successfuly", status: true })
+                                break;
+                            case false:
+                                res.send({ message: "Payment failed", status: false })
+                            default:
+                                break;
+                        }
+
+                    })
+
+                }
+            }
+        )
+    } catch (error) {
+        return next(error)
+    }
+}
+
 const test = (req: Request, res: Response) => {
 
 }
-export { registerUser, signIn, createGroup, joinGroup, test }
+export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, test }
 // module.exports = { registerUser }

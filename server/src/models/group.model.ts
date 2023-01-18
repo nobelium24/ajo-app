@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import bcryptjs from "bcryptjs"
 import members from "./members.model";
+import contributions from "./contribution.model";
 const groupSchema = new mongoose.Schema({
     groupName: String,
     passcode: String,
     groupMembers:[members],
+    generalAmount:[contributions]
 })
 
 let saltRound = 15
