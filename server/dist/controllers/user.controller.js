@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.test = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
+exports.test = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
 //@ts-ignore
 const user_model_1 = __importDefault(require("../models/user.model"));
 const group_model_1 = __importDefault(require("../models/group.model"));
@@ -210,6 +210,7 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                             break;
                         case false:
                             res.send({ message: "Payment failed", status: false });
+                            break;
                         default:
                             break;
                     }
@@ -222,6 +223,31 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.addGroupAmount = addGroupAmount;
+const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const fund = req.body.fund;
+    const email = req.body.email;
+    try {
+        yield user_model_1.default.findOne({ email: email }).then((user) => {
+            user_model_1.default.updateOne({ _id: user._id }, { $push: { wallet: fund } }).then((ram) => {
+                console.log(ram);
+                switch (ram.acknowledged) {
+                    case true:
+                        res.send({ message: "Wallet funded successfuly", status: true });
+                        break;
+                    case false:
+                        res.send({ message: "Payment failed", status: false });
+                        break;
+                    default:
+                        break;
+                }
+            });
+        });
+    }
+    catch (error) {
+        return next(error);
+    }
+});
+exports.fundWallet = fundWallet;
 const test = (req, res) => {
 };
 exports.test = test;

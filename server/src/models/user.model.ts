@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     lastName: String,
     userName: String,
     email: String,
-    password: String
+    password: String,
+    wallet:Array
 })
 
 let saltRound = 10

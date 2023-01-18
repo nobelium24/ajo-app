@@ -9,6 +9,7 @@ const SECRET = process.env.SECRET
 
 
 interface NewUser {
+    readonly _id?: string
     firstName: string
     lastName: string,
     userName: string,
@@ -203,7 +204,7 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                 if (!group) {
                     res.send({ message: "You can't make payment as you do not belong to a group", status: false })
                 } else {
-                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount:amount } } }).then((ram) => {
+                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } }).then((ram) => {
                         console.log(ram);
                         switch (ram.acknowledged) {
                             case true:
@@ -211,6 +212,7 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                 break;
                             case false:
                                 res.send({ message: "Payment failed", status: false })
+                                break
                             default:
                                 break;
                         }
@@ -225,8 +227,36 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
     }
 }
 
+const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
+    const fund = req.body.fund
+    const email = req.body.email
+    try {
+        await userModel.findOne({ email: email }).then(
+            (user: NewUser) => {
+                userModel.updateOne({_id:user._id},{ $push: { wallet: fund } } ).then((ram) => {
+                    console.log(ram);
+                    switch (ram.acknowledged) {
+                        case true:
+                            res.send({ message: "Wallet funded successfuly", status: true })
+                            break;
+                        case false:
+                            res.send({ message: "Payment failed", status: false })
+                            break
+                        default:
+                            break;
+                    }
+
+                })
+            }
+        )
+    } catch (error) {
+        return next(error)
+    }
+
+}
+
 const test = (req: Request, res: Response) => {
 
 }
-export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, test }
+export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet,test }
 // module.exports = { registerUser }

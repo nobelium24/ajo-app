@@ -10,7 +10,8 @@ const userSchema = new mongoose_1.default.Schema({
     lastName: String,
     userName: String,
     email: String,
-    password: String
+    password: String,
+    wallet: Array
 });
 let saltRound = 10;
 userSchema.pre("save", function (next) {

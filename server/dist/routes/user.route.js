@@ -12,6 +12,7 @@ router.post("/signin", user_controller_1.signIn);
 router.post("/creategroup", user_controller_1.createGroup);
 router.post("/joingroup", user_controller_1.joinGroup);
 router.post("/grouppayment", user_controller_1.addGroupAmount);
+router.post("/fundwallet", user_controller_1.fundWallet);
 router.post("/test", user_controller_1.test);
 router.post("/test2", (req, res) => {
     let email = req.body.email;
