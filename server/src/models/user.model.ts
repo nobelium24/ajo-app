@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 import bcryptjs from "bcryptjs"
 const userSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String,
-    userName: String,
-    email: String,
-    password: String,
-    wallet:Array
+    firstName:{type:String, trim:true},
+    lastName: {type:String, trim:true},
+    userName: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true },
+    password: {type:String, trim:true},
+    wallet:{type:Array}
 })
 
 let saltRound = 10

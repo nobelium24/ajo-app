@@ -8,8 +8,8 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const members_model_1 = __importDefault(require("./members.model"));
 const contribution_model_1 = __importDefault(require("./contribution.model"));
 const groupSchema = new mongoose_1.default.Schema({
-    groupName: String,
-    passcode: String,
+    groupName: { type: String, required: true, unique: true, trim: true },
+    passcode: { type: String, trim: true },
     groupMembers: [members_model_1.default],
     generalAmount: [contribution_model_1.default]
 });

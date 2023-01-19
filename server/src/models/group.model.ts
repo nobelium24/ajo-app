@@ -3,8 +3,8 @@ import bcryptjs from "bcryptjs"
 import members from "./members.model";
 import contributions from "./contribution.model";
 const groupSchema = new mongoose.Schema({
-    groupName: String,
-    passcode: String,
+    groupName: { type: String, required: true, unique: true, trim: true },
+    passcode: {type:String, trim:true},
     groupMembers:[members],
     generalAmount:[contributions]
 })

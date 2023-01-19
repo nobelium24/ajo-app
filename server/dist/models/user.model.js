@@ -6,12 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const userSchema = new mongoose_1.default.Schema({
-    firstName: String,
-    lastName: String,
-    userName: String,
-    email: String,
-    password: String,
-    wallet: Array
+    firstName: { type: String, trim: true },
+    lastName: { type: String, trim: true },
+    userName: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true },
+    password: { type: String, trim: true },
+    wallet: { type: Array }
 });
 let saltRound = 10;
 userSchema.pre("save", function (next) {

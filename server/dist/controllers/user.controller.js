@@ -248,6 +248,10 @@ const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.fundWallet = fundWallet;
+// let code = Math.floor(Math.random() * 999999)+100000
+// return code
+const forgotPassword = () => {
+};
 const test = (req, res) => {
 };
 exports.test = test;

@@ -17,11 +17,13 @@ interface NewUser {
     password: string
 }
 
+
 interface NewGroup {
     groupName: string
     passcode: string
     groupMembers?: object[]
 }
+
 
 const registerUser = (req: Request, res: Response) => {
     const newUser: NewUser = req.body
@@ -64,6 +66,7 @@ const registerUser = (req: Request, res: Response) => {
     })
 }
 
+
 const signIn = (req: Request, res: Response) => {
     console.log(req.body);
     const password = req.body?.password
@@ -99,10 +102,12 @@ const signIn = (req: Request, res: Response) => {
     })
 }
 
+
 interface Group {
     email: string,
     userName?: string
 }
+
 
 const createGroup = (req: Request, res: Response) => {
     const email: string = req.body?.email
@@ -145,6 +150,7 @@ const createGroup = (req: Request, res: Response) => {
 
 }
 
+
 interface Group2 {
     readonly _id?: string,
     groupName?: string,
@@ -152,6 +158,7 @@ interface Group2 {
     groupMembers?: [],
     amount?: number[]
 }
+
 
 const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
     let email = req.body.email
@@ -194,6 +201,7 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
+
 const addGroupAmount = async (req: Request, res: Response, next: NextFunction) => {
     let amount = req.body.amount
     let groupName = req.body.groupName
@@ -227,13 +235,14 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
     }
 }
 
+
 const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
     const fund = req.body.fund
     const email = req.body.email
     try {
         await userModel.findOne({ email: email }).then(
             (user: NewUser) => {
-                userModel.updateOne({_id:user._id},{ $push: { wallet: fund } } ).then((ram) => {
+                userModel.updateOne({ _id: user._id }, { $push: { wallet: fund } }).then((ram) => {
                     console.log(ram);
                     switch (ram.acknowledged) {
                         case true:
@@ -255,8 +264,16 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
+
+// let code = Math.floor(Math.random() * 999999)+100000
+// return code
+
+const forgotPassword = () => {
+
+}
+
 const test = (req: Request, res: Response) => {
 
 }
-export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet,test }
+export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet, test }
 // module.exports = { registerUser }
