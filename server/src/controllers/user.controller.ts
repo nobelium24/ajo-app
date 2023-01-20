@@ -182,9 +182,21 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                 if (group.passcode != undefined) {
                                     bcryptjs.compare(passcode, group.passcode, (err, same) => {
                                         if (same) {
-                                            groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)
-                                            ))
-                                            res.send({ message: "Added to group successfuly", status: true })
+                                            groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } })
+                                                .then((ram) => {
+                                                    console.log(ram)
+                                                    switch (ram.acknowledged) {
+                                                        case true:
+                                                            res.send({ message: "Added to group successfuly", status: true })
+                                                            break;
+                                                        case false:
+                                                            res.send({ message: "You were unable to join group. Try again", status: false })
+                                                            break
+                                                        default:
+                                                            break;
+                                                    }
+                                                })
+
                                         }
                                     })
                                 }
@@ -213,20 +225,21 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                 if (!group) {
                     res.send({ message: "You can't make payment as you do not belong to a group", status: false })
                 } else {
-                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } }).then((ram) => {
-                        console.log(ram);
-                        switch (ram.acknowledged) {
-                            case true:
-                                res.send({ message: "Payment made successfuly", status: true })
-                                break;
-                            case false:
-                                res.send({ message: "Payment failed", status: false })
-                                break
-                            default:
-                                break;
-                        }
+                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } })
+                        .then((ram) => {
+                            console.log(ram);
+                            switch (ram.acknowledged) {
+                                case true:
+                                    res.send({ message: "Payment made successfuly", status: true })
+                                    break;
+                                case false:
+                                    res.send({ message: "Payment failed", status: false })
+                                    break
+                                default:
+                                    break;
+                            }
 
-                    })
+                        })
 
                 }
             }
@@ -243,7 +256,8 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
     try {
         await userModel.findOne({ email: email }).then(
             (user: NewUser) => {
-                userModel.updateOne({ _id: user._id }, { $push: { wallet: fund } }).then((ram) => {
+                userModel.updateOne({ _id: user._id }, { $push: { wallet: fund } })
+                .then((ram) => {
                     console.log(ram);
                     switch (ram.acknowledged) {
                         case true:
@@ -359,9 +373,10 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
                     if (SECRET != undefined) {
                         jsonwebtoken.verify(token2, SECRET, (decoded: any) => {
                             if (!decoded) {
-                                res.send({message:"Invalid or expired token", status:false})
+                                res.send({ message: "Invalid or expired token", status: false })
                             } else {
-                                userModel.updateOne({ _id: user._id }, { $set: { password: hash } }).then((ram) => {
+                                userModel.updateOne({ _id: user._id }, { $set: { password: hash } })
+                                .then((ram) => {
                                     console.log(ram);
                                     switch (ram.acknowledged) {
                                         case true:

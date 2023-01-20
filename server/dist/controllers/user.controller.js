@@ -174,8 +174,20 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                             if (group.passcode != undefined) {
                                 bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
                                     if (same) {
-                                        group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } }).then((ram) => (console.log(ram)));
-                                        res.send({ message: "Added to group successfuly", status: true });
+                                        group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } })
+                                            .then((ram) => {
+                                            console.log(ram);
+                                            switch (ram.acknowledged) {
+                                                case true:
+                                                    res.send({ message: "Added to group successfuly", status: true });
+                                                    break;
+                                                case false:
+                                                    res.send({ message: "You were unable to join group. Try again", status: false });
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        });
                                     }
                                 });
                             }
@@ -203,7 +215,8 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 res.send({ message: "You can't make payment as you do not belong to a group", status: false });
             }
             else {
-                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } }).then((ram) => {
+                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } })
+                    .then((ram) => {
                     console.log(ram);
                     switch (ram.acknowledged) {
                         case true:
@@ -229,7 +242,8 @@ const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     const email = req.body.email;
     try {
         yield user_model_1.default.findOne({ email: email }).then((user) => {
-            user_model_1.default.updateOne({ _id: user._id }, { $push: { wallet: fund } }).then((ram) => {
+            user_model_1.default.updateOne({ _id: user._id }, { $push: { wallet: fund } })
+                .then((ram) => {
                 console.log(ram);
                 switch (ram.acknowledged) {
                     case true:
@@ -341,7 +355,8 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                             res.send({ message: "Invalid or expired token", status: false });
                         }
                         else {
-                            user_model_1.default.updateOne({ _id: user._id }, { $set: { password: hash } }).then((ram) => {
+                            user_model_1.default.updateOne({ _id: user._id }, { $set: { password: hash } })
+                                .then((ram) => {
                                 console.log(ram);
                                 switch (ram.acknowledged) {
                                     case true:
