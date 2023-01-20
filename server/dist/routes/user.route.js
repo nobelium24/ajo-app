@@ -13,6 +13,8 @@ router.post("/creategroup", user_controller_1.createGroup);
 router.post("/joingroup", user_controller_1.joinGroup);
 router.post("/grouppayment", user_controller_1.addGroupAmount);
 router.post("/fundwallet", user_controller_1.fundWallet);
+router.post("/forgotpassword", user_controller_1.forgotPasswordEmail);
+router.post("/resetpassword", user_controller_1.resetPassword);
 router.post("/test", user_controller_1.test);
 router.post("/test2", (req, res) => {
     let email = req.body.email;

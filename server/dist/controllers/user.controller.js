@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.test = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
+exports.resetPassword = exports.test = exports.forgotPasswordEmail = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
 //@ts-ignore
 const user_model_1 = __importDefault(require("../models/user.model"));
 const group_model_1 = __importDefault(require("../models/group.model"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const SECRET = process.env.SECRET;
 const registerUser = (req, res) => {
     const newUser = req.body;
@@ -248,11 +249,123 @@ const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.fundWallet = fundWallet;
-// let code = Math.floor(Math.random() * 999999)+100000
-// return code
-const forgotPassword = () => {
+const codeGenerator = () => {
+    let code = Math.floor(Math.random() * 999999) + 100000;
+    return code;
 };
-const test = (req, res) => {
+const code = codeGenerator();
+const forgotPasswordEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userName, email, } = req.body;
+    try {
+        yield user_model_1.default.findOne({ email: email }).then((user) => {
+            if (!user) {
+                res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false });
+            }
+            else {
+                if (SECRET != undefined) {
+                    let token = jsonwebtoken_1.default.sign({ email }, SECRET, { expiresIn: 300 });
+                    const contactTemplate = `<div>
+                        <div>
+                          <h2 style="color:#2036ea ;">Message Title:-Password Reset</h2>
+                           <p>
+                            
+                           </p>
+                        </div>
+                        <ul>
+                         <li>Name : ${userName}</li>
+                         <li>Email: ${email}</li>
+                        </ul>
+                        <div>
+                          <h2 style="color:#2036ea ;">Message :-</h2>
+                          <p>
+                            Dear ${userName}, kindly input the code:(${token}) to change your password. This code will expire in 5 minutes. Please don't share with anyone.
+                          </p>
+                        </div>
+                        <p style="color:#2036ea ;"><i>The AJO Team.</i></p>
+                        </div>
+                        `;
+                    let mail = process.env.GMAIL;
+                    let pws = process.env.PASSWORD;
+                    let transporter = nodemailer_1.default.createTransport({
+                        service: "gmail",
+                        auth: {
+                            user: mail,
+                            pass: pws
+                        }
+                    });
+                    let mailOptions = {
+                        from: "",
+                        to: `${email}`,
+                        subject: "AJO —— Support Message",
+                        text: "AJO",
+                        html: contactTemplate,
+                    };
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            console.log(error);
+                            res.send({ message: "Internal Server Error!!!", status: false });
+                        }
+                        else {
+                            res.send({
+                                message: "Check your mail box",
+                                status: true,
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+    catch (error) {
+        return next(error);
+    }
+});
+exports.forgotPasswordEmail = forgotPasswordEmail;
+const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let email = req.body.email;
+    let token = req.body.token;
+    const token2 = token.split(' ')[1];
+    let password = req.body.password;
+    let salt = bcryptjs_1.default.genSaltSync(10);
+    let hash = bcryptjs_1.default.hashSync(password, salt);
+    console.log(hash);
+    try {
+        yield user_model_1.default.findOne({ email: email }).then((user) => {
+            if (!user) {
+                res.send({ message: "You don't have an account with us.", status: false });
+            }
+            else {
+                if (SECRET != undefined) {
+                    jsonwebtoken_1.default.verify(token2, SECRET, (decoded) => {
+                        if (!decoded) {
+                            res.send({ message: "Invalid or expired token", status: false });
+                        }
+                        else {
+                            user_model_1.default.updateOne({ _id: user._id }, { $set: { password: hash } }).then((ram) => {
+                                console.log(ram);
+                                switch (ram.acknowledged) {
+                                    case true:
+                                        res.send({ message: "Password changed successfuly", status: true });
+                                        break;
+                                    case false:
+                                        res.send({ message: "Password changed failed", status: false });
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+    catch (error) {
+        return next(error);
+    }
+});
+exports.resetPassword = resetPassword;
+const test = () => {
 };
 exports.test = test;
 // module.exports = { registerUser }

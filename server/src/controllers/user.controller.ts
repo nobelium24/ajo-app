@@ -3,7 +3,8 @@ import userModel from "../models/user.model";
 import groupModel from "../models/group.model"
 import { Request, Response, NextFunction } from "express";
 import bcryptjs from "bcryptjs"
-import jsonwebtoken from "jsonwebtoken"
+import jsonwebtoken, { JsonWebTokenError } from "jsonwebtoken"
+import nodemailer from "nodemailer"
 const SECRET = process.env.SECRET
 
 
@@ -265,15 +266,130 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
 }
 
 
-// let code = Math.floor(Math.random() * 999999)+100000
-// return code
+const codeGenerator = () => {
+    let code = Math.floor(Math.random() * 999999) + 100000
+    return code
+}
+const code = codeGenerator()
 
-const forgotPassword = () => {
+
+const forgotPasswordEmail = async (req: Request, res: Response, next: NextFunction) => {
+    const { userName, email, } = req.body
+    try {
+        await userModel.findOne({ email: email }).then(
+            (user: NewUser) => {
+                if (!user) {
+                    res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false })
+                } else {
+                    if (SECRET != undefined) {
+                        let token = jsonwebtoken.sign({ email }, SECRET, { expiresIn: 300 })
+                        const contactTemplate: string = `<div>
+                        <div>
+                          <h2 style="color:#2036ea ;">Message Title:-Password Reset</h2>
+                           <p>
+                            
+                           </p>
+                        </div>
+                        <ul>
+                         <li>Name : ${userName}</li>
+                         <li>Email: ${email}</li>
+                        </ul>
+                        <div>
+                          <h2 style="color:#2036ea ;">Message :-</h2>
+                          <p>
+                            Dear ${userName}, kindly input the code:(${token}) to change your password. This code will expire in 5 minutes. Please don't share with anyone.
+                          </p>
+                        </div>
+                        <p style="color:#2036ea ;"><i>The AJO Team.</i></p>
+                        </div>
+                        `
+                        let mail = process.env.GMAIL
+                        let pws = process.env.PASSWORD
+                        let transporter = nodemailer.createTransport({
+                            service: "gmail",
+                            auth: {
+                                user: mail,
+                                pass: pws
+                            }
+                        })
+                        let mailOptions = {
+                            from: "",
+                            to: `${email}`,
+                            subject: "AJO —— Support Message",
+                            text: "AJO",
+                            html: contactTemplate,
+                        }
+                        transporter.sendMail(mailOptions, function (error, info) {
+                            if (error) {
+                                console.log(error);
+                                res.send({ message: "Internal Server Error!!!", status: false });
+                            } else {
+                                res.send({
+                                    message: "Check your mail box",
+                                    status: true,
+                                });
+                            }
+                        })
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return next(error)
+    }
+}
+
+
+
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    let email = req.body.email
+    let token = req.body.token
+    const token2 = token.split(' ')[1]
+    let password = req.body.password
+    let salt = bcryptjs.genSaltSync(10)
+    let hash = bcryptjs.hashSync(password, salt)
+    console.log(hash);
+
+    try {
+        await userModel.findOne({ email: email }).then(
+            (user: NewUser) => {
+                if (!user) {
+                    res.send({ message: "You don't have an account with us.", status: false })
+                } else {
+                    if (SECRET != undefined) {
+                        jsonwebtoken.verify(token2, SECRET, (decoded: any) => {
+                            if (!decoded) {
+                                res.send({message:"Invalid or expired token", status:false})
+                            } else {
+                                userModel.updateOne({ _id: user._id }, { $set: { password: hash } }).then((ram) => {
+                                    console.log(ram);
+                                    switch (ram.acknowledged) {
+                                        case true:
+                                            res.send({ message: "Password changed successfuly", status: true })
+                                            break;
+                                        case false:
+                                            res.send({ message: "Password changed failed", status: false })
+                                            break
+                                        default:
+                                            break;
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+            }
+
+        )
+    } catch (error) {
+        return next(error)
+    }
+}
+
+const test = () => {
 
 }
 
-const test = (req: Request, res: Response) => {
 
-}
-export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet, test }
+export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet, forgotPasswordEmail, test, resetPassword }
 // module.exports = { registerUser }
