@@ -193,6 +193,7 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                             }
                         }
                         catch (error) {
+                            res.status(501).send({ message: "Internal server error", status: false });
                             return next(error);
                         }
                     }
@@ -201,6 +202,7 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         });
     }
     catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
         return next(error);
     }
 });
@@ -233,6 +235,7 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         });
     }
     catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
         return next(error);
     }
 });
@@ -259,6 +262,7 @@ const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         });
     }
     catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
         return next(error);
     }
 });
@@ -331,6 +335,7 @@ const forgotPasswordEmail = (req, res, next) => __awaiter(void 0, void 0, void 0
         });
     }
     catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
         return next(error);
     }
 });
@@ -376,6 +381,7 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         });
     }
     catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
         return next(error);
     }
 });

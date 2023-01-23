@@ -201,6 +201,7 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                     })
                                 }
                             } catch (error) {
+                                res.status(501).send({message:"Internal server error", status: false})
                                 return next(error)
                             }
                         }
@@ -209,6 +210,7 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
             }
         )
     } catch (error) {
+        res.status(501).send({message:"Internal server error", status: false})
         return next(error)
     }
 
@@ -245,6 +247,7 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
             }
         )
     } catch (error) {
+        res.status(501).send({message:"Internal server error", status: false})
         return next(error)
     }
 }
@@ -274,6 +277,7 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
             }
         )
     } catch (error) {
+        res.status(501).send({message:"Internal server error", status: false})
         return next(error)
     }
 
@@ -349,6 +353,7 @@ const forgotPasswordEmail = async (req: Request, res: Response, next: NextFuncti
             }
         )
     } catch (error) {
+        res.status(501).send({message:"Internal server error", status: false})
         return next(error)
     }
 }
@@ -397,6 +402,7 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
 
         )
     } catch (error) {
+        res.status(501).send({message:"Internal server error", status: false})
         return next(error)
     }
 }
