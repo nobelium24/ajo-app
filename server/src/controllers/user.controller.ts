@@ -68,39 +68,51 @@ const registerUser = (req: Request, res: Response) => {
 }
 
 
-const signIn = (req: Request, res: Response) => {
-    console.log(req.body);
-    const password = req.body?.password
-    const email = req.body?.email
-    userModel.findOne({ email: email }, (err: string, user: NewUser) => {
-        if (err) {
-            if (res.status != undefined) {
-                res.status(501)
-                res.send({ message: "Internal server error", status: false })
-            }
-        } else {
+const signIn = async(req: Request, res: Response, next:NextFunction) => {
+    let password = req.body.password
+    let email = req.body.email
+    let userName = req.body.userName
+    try {
+        await userModel.findOne({
+            $or: [
+                { email: email },
+                { userName: userName },
+            ]
+        }).then((user) => {
             if (!user) {
-                res.send({ message: "Invalid Email", status: false })
+                res.send({ message: "Invalid email or username", status: false })
             } else {
                 if (password != undefined) {
-                    bcryptjs.compare(password, user.password, (err, same) => {
-                        if (err) {
-                            console.log(err);
-                        } else if (same) {
-                            if (SECRET != undefined) {
-                                const token = jsonwebtoken.sign({ email }, SECRET)
-                                console.log(token);
-                                res.send({ message: "Welcome", token: token, status: true, result: { firstname: user.firstName, lastname: user.lastName, username: user.userName } })
-
+                    try {
+                        bcryptjs.compare(password, user.password).then((same) => {
+                            switch (same) {
+                                case same:
+                                    if (SECRET != undefined) {
+                                        const token = jsonwebtoken.sign({ email }, SECRET)
+                                        console.log(token);
+                                        res.send({ message: "Welcome", token: token, status: true, 
+                                        result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName } })
+                                    }
+                                    break;
+                                case !same:
+                                    res.send({ message: 'invalid password', status: false })
+                                default:
+                                    break;
                             }
-                        } else {
-                            res.send({ message: 'invalid password', status: false })
-                        }
-                    })
+                        })
+                    } catch (error) {
+                        res.status(501).send({ message: "Internal server error", status: false })
+                        return next(error)
+                    }
                 }
             }
-        }
-    })
+        })
+
+    } catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false })
+        return next(error)
+
+    }
 }
 
 
@@ -201,7 +213,7 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                     })
                                 }
                             } catch (error) {
-                                res.status(501).send({message:"Internal server error", status: false})
+                                res.status(501).send({ message: "Internal server error", status: false })
                                 return next(error)
                             }
                         }
@@ -210,7 +222,7 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
             }
         )
     } catch (error) {
-        res.status(501).send({message:"Internal server error", status: false})
+        res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
     }
 
@@ -247,7 +259,7 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
             }
         )
     } catch (error) {
-        res.status(501).send({message:"Internal server error", status: false})
+        res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
     }
 }
@@ -260,24 +272,24 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
         await userModel.findOne({ email: email }).then(
             (user: NewUser) => {
                 userModel.updateOne({ _id: user._id }, { $push: { wallet: fund } })
-                .then((ram) => {
-                    console.log(ram);
-                    switch (ram.acknowledged) {
-                        case true:
-                            res.send({ message: "Wallet funded successfuly", status: true })
-                            break;
-                        case false:
-                            res.send({ message: "Payment failed", status: false })
-                            break
-                        default:
-                            break;
-                    }
+                    .then((ram) => {
+                        console.log(ram);
+                        switch (ram.acknowledged) {
+                            case true:
+                                res.send({ message: "Wallet funded successfuly", status: true })
+                                break;
+                            case false:
+                                res.send({ message: "Payment failed", status: false })
+                                break
+                            default:
+                                break;
+                        }
 
-                })
+                    })
             }
         )
     } catch (error) {
-        res.status(501).send({message:"Internal server error", status: false})
+        res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
     }
 
@@ -353,7 +365,7 @@ const forgotPasswordEmail = async (req: Request, res: Response, next: NextFuncti
             }
         )
     } catch (error) {
-        res.status(501).send({message:"Internal server error", status: false})
+        res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
     }
 }
@@ -381,19 +393,19 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
                                 res.send({ message: "Invalid or expired token", status: false })
                             } else {
                                 userModel.updateOne({ _id: user._id }, { $set: { password: hash } })
-                                .then((ram) => {
-                                    console.log(ram);
-                                    switch (ram.acknowledged) {
-                                        case true:
-                                            res.send({ message: "Password changed successfuly", status: true })
-                                            break;
-                                        case false:
-                                            res.send({ message: "Password changed failed", status: false })
-                                            break
-                                        default:
-                                            break;
-                                    }
-                                })
+                                    .then((ram) => {
+                                        console.log(ram);
+                                        switch (ram.acknowledged) {
+                                            case true:
+                                                res.send({ message: "Password changed successfuly", status: true })
+                                                break;
+                                            case false:
+                                                res.send({ message: "Password changed failed", status: false })
+                                                break
+                                            default:
+                                                break;
+                                        }
+                                    })
                             }
                         })
                     }
@@ -402,13 +414,13 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
 
         )
     } catch (error) {
-        res.status(501).send({message:"Internal server error", status: false})
+        res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
     }
 }
 
-const test = () => {
-
+const test = async (req: Request, res: Response, next: NextFunction) => {
+   
 }
 
 

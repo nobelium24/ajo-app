@@ -68,44 +68,53 @@ const registerUser = (req, res) => {
     });
 };
 exports.registerUser = registerUser;
-const signIn = (req, res) => {
-    var _a, _b;
-    console.log(req.body);
-    const password = (_a = req.body) === null || _a === void 0 ? void 0 : _a.password;
-    const email = (_b = req.body) === null || _b === void 0 ? void 0 : _b.email;
-    user_model_1.default.findOne({ email: email }, (err, user) => {
-        if (err) {
-            if (res.status != undefined) {
-                res.status(501);
-                res.send({ message: "Internal server error", status: false });
-            }
-        }
-        else {
+const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let password = req.body.password;
+    let email = req.body.email;
+    let userName = req.body.userName;
+    try {
+        yield user_model_1.default.findOne({
+            $or: [
+                { email: email },
+                { userName: userName },
+            ]
+        }).then((user) => {
             if (!user) {
-                res.send({ message: "Invalid Email", status: false });
+                res.send({ message: "Invalid email or username", status: false });
             }
             else {
                 if (password != undefined) {
-                    bcryptjs_1.default.compare(password, user.password, (err, same) => {
-                        if (err) {
-                            console.log(err);
-                        }
-                        else if (same) {
-                            if (SECRET != undefined) {
-                                const token = jsonwebtoken_1.default.sign({ email }, SECRET);
-                                console.log(token);
-                                res.send({ message: "Welcome", token: token, status: true, result: { firstname: user.firstName, lastname: user.lastName, username: user.userName } });
+                    try {
+                        bcryptjs_1.default.compare(password, user.password).then((same) => {
+                            switch (same) {
+                                case same:
+                                    if (SECRET != undefined) {
+                                        const token = jsonwebtoken_1.default.sign({ email }, SECRET);
+                                        console.log(token);
+                                        res.send({ message: "Welcome", token: token, status: true,
+                                            result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName } });
+                                    }
+                                    break;
+                                case !same:
+                                    res.send({ message: 'invalid password', status: false });
+                                default:
+                                    break;
                             }
-                        }
-                        else {
-                            res.send({ message: 'invalid password', status: false });
-                        }
-                    });
+                        });
+                    }
+                    catch (error) {
+                        res.status(501).send({ message: "Internal server error", status: false });
+                        return next(error);
+                    }
                 }
             }
-        }
-    });
-};
+        });
+    }
+    catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
+        return next(error);
+    }
+});
 exports.signIn = signIn;
 const createGroup = (req, res) => {
     var _a;
@@ -386,7 +395,7 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.resetPassword = resetPassword;
-const test = () => {
-};
+const test = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
 exports.test = test;
 // module.exports = { registerUser }

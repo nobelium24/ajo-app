@@ -1,29 +1,34 @@
-let email = req.body.email
-let groupName = req.body.groupName
-let passcode = req.body.passcode
-try {
-    userModel.findOne({ email: email }, (user: NewUser) => {
-        if (!user) {
-            res.send({ message: "You don't have an account with us. Kindly create an account to create an ajo group", status: false })
+const signIn = (req: Request, res: Response) => {
+    console.log(req.body);
+    const password = req.body?.password
+    const email = req.body?.email
+    userModel.findOne({ email: email }, (err: string, user: NewUser) => {
+        if (err) {
+            if (res.status != undefined) {
+                res.status(501)
+                res.send({ message: "Internal server error", status: false })
+            }
         } else {
-            groupModel.findOne({ groupName: groupName }, (group: Group2) => {
-                if (!group) {
-                    res.send({ message: "Group dosen't exist. kindly create a new group", status: false })
-                } else {
-                    try {
-                        bcryptjs.compare(passcode, group.passcode, (err, same) => {
-                            if (same) {
-                                groupModel.updateOne({_id:group._id}, {$push:{groupMembers:{email}}})
+            if (!user) {
+                res.send({ message: "Invalid Email", status: false })
+            } else {
+                if (password != undefined) {
+                    bcryptjs.compare(password, user.password, (err, same) => {
+                        if (err) {
+                            console.log(err);
+                        } else if (same) {
+                            if (SECRET != undefined) {
+                                const token = jsonwebtoken.sign({ email }, SECRET)
+                                console.log(token);
+                                res.send({ message: "Welcome", token: token, status: true, result: { firstname: user.firstName, lastname: user.lastName, username: user.userName } })
+
                             }
-                        })
-                    } catch (error) {
-                        error
-                    }
+                        } else {
+                            res.send({ message: 'invalid password', status: false })
+                        }
+                    })
                 }
-            })
+            }
         }
     })
-} catch (error) {
-    console.log(error);
-
 }
