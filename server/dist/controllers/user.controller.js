@@ -247,16 +247,16 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                             res.send({ message: "You can't make payment as you do not belong to a group", status: false });
                         }
                         else {
-                            group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                .then((ram) => {
-                                console.log(ram);
-                                switch (ram.acknowledged) {
-                                    case true:
-                                        let newFund = user.wallet - amount;
-                                        if (newFund < 0) {
-                                            res.send({ message: "Insufficient funds. Please fund wallet", status: false });
-                                        }
-                                        else {
+                            let newFund = user.wallet - amount;
+                            if (newFund < 0) {
+                                res.send({ message: "Insufficient funds. Please fund wallet", status: false });
+                            }
+                            else {
+                                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                    .then((ram) => {
+                                    console.log(ram);
+                                    switch (ram.acknowledged) {
+                                        case true:
                                             user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
                                                 console.log(ram);
                                                 switch (ram.acknowledged) {
@@ -270,15 +270,15 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                                                         break;
                                                 }
                                             });
-                                        }
-                                        break;
-                                    case false:
-                                        res.send({ message: "Payment failed", status: false });
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            });
+                                            break;
+                                        case false:
+                                            res.send({ message: "Payment failed", status: false });
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                });
+                            }
                         }
                     });
                 }
