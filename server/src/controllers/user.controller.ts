@@ -263,12 +263,13 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                         res.send({ message: "Insufficient funds. Please fund wallet", status: false })
                                     } else {
 
-                                        groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                            .then((ram) => {
-                                                console.log(ram);
-                                                switch (ram.acknowledged) {
-                                                    case true:
-                                                        userModel.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+
+                                        userModel.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                            console.log(ram);
+                                            switch (ram.acknowledged) {
+                                                case true:
+                                                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                                        .then((ram) => {
                                                             console.log(ram);
                                                             switch (ram.acknowledged) {
                                                                 case true:
@@ -281,16 +282,14 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                                     break;
                                                             }
                                                         })
-                                                        break;
-                                                    case false:
-                                                        res.send({ message: "Payment failed", status: false })
-                                                        break
-                                                    default:
-                                                        break;
-                                                }
-
-                                            })
-
+                                                    break;
+                                                case false:
+                                                    res.send({ message: "Payment failed", status: false })
+                                                    break
+                                                default:
+                                                    break;
+                                            }
+                                        })
 
                                     }
 

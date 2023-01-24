@@ -252,12 +252,12 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                                 res.send({ message: "Insufficient funds. Please fund wallet", status: false });
                             }
                             else {
-                                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                    .then((ram) => {
+                                user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
                                     console.log(ram);
                                     switch (ram.acknowledged) {
                                         case true:
-                                            user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                            group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                                .then((ram) => {
                                                 console.log(ram);
                                                 switch (ram.acknowledged) {
                                                     case true:
