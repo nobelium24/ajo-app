@@ -91,8 +91,10 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
                                     if (SECRET != undefined) {
                                         const token = jsonwebtoken_1.default.sign({ email }, SECRET);
                                         console.log(token);
-                                        res.send({ message: "Welcome", token: token, status: true,
-                                            result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName } });
+                                        res.send({
+                                            message: "Welcome", token: token, status: true,
+                                            result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName }
+                                        });
                                     }
                                     break;
                                 case !same:
@@ -118,11 +120,11 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
 exports.signIn = signIn;
 const createGroup = (req, res) => {
     var _a;
-    const email = (_a = req.body) === null || _a === void 0 ? void 0 : _a.email;
+    const userName = (_a = req.body) === null || _a === void 0 ? void 0 : _a.userName;
     const groupName = req.body.groupName;
     const passcode = req.body.passcode;
     const newGroup = { groupName: groupName, passcode: passcode, groupMembers: [] };
-    user_model_1.default.findOne({ email: email }, (err, user) => {
+    user_model_1.default.findOne({ userName: userName }, (err, user) => {
         if (err) {
             console.log(err);
             if (res.status != undefined) {
@@ -148,7 +150,7 @@ const createGroup = (req, res) => {
                         res.send({ message: "Group name already in use. Please, register with a new group name", status: false });
                     }
                     else {
-                        let member = { email: email };
+                        let member = { userName: userName };
                         (_a = newGroup.groupMembers) === null || _a === void 0 ? void 0 : _a.push(member);
                         console.log(newGroup);
                         group_model_1.default.create(newGroup);
@@ -161,11 +163,11 @@ const createGroup = (req, res) => {
 };
 exports.createGroup = createGroup;
 const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    let email = req.body.email;
+    let userName = req.body.userName;
     let groupName = req.body.groupName;
     let passcode = req.body.passcode;
     try {
-        yield user_model_1.default.findOne({ email: email }).then((user) => {
+        yield user_model_1.default.findOne({ userName: userName }).then((user) => {
             if (!user) {
                 res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false });
             }
@@ -182,21 +184,34 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                         try {
                             if (group.passcode != undefined) {
                                 bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
+                                    var _a;
                                     if (same) {
-                                        group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } })
-                                            .then((ram) => {
-                                            console.log(ram);
-                                            switch (ram.acknowledged) {
-                                                case true:
-                                                    res.send({ message: "Added to group successfuly", status: true });
-                                                    break;
-                                                case false:
-                                                    res.send({ message: "You were unable to join group. Try again", status: false });
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                        });
+                                        try {
+                                            (_a = group.groupMembers) === null || _a === void 0 ? void 0 : _a.map((i) => {
+                                                if (i.userName == userName) {
+                                                    res.send({ message: "You are already in this group", status: false });
+                                                }
+                                                else {
+                                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { userName: userName } } })
+                                                        .then((ram) => {
+                                                        console.log(ram);
+                                                        switch (ram.acknowledged) {
+                                                            case true:
+                                                                res.send({ message: "Added to group successfuly", status: true });
+                                                                break;
+                                                            case false:
+                                                                res.send({ message: "You were unable to join group. Try again", status: false });
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                        catch (err) {
+                                            return err;
+                                        }
                                     }
                                 });
                             }
@@ -395,6 +410,9 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.resetPassword = resetPassword;
+const personalSavings = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let goalName = req.body.goal;
+});
 const test = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.test = test;

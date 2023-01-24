@@ -68,7 +68,7 @@ const registerUser = (req: Request, res: Response) => {
 }
 
 
-const signIn = async(req: Request, res: Response, next:NextFunction) => {
+const signIn = async (req: Request, res: Response, next: NextFunction) => {
     let password = req.body.password
     let email = req.body.email
     let userName = req.body.userName
@@ -90,8 +90,10 @@ const signIn = async(req: Request, res: Response, next:NextFunction) => {
                                     if (SECRET != undefined) {
                                         const token = jsonwebtoken.sign({ email }, SECRET)
                                         console.log(token);
-                                        res.send({ message: "Welcome", token: token, status: true, 
-                                        result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName } })
+                                        res.send({
+                                            message: "Welcome", token: token, status: true,
+                                            result: { firstName: user.firstName, lastName: user.lastName, userName: user.userName }
+                                        })
                                     }
                                     break;
                                 case !same:
@@ -117,18 +119,18 @@ const signIn = async(req: Request, res: Response, next:NextFunction) => {
 
 
 interface Group {
-    email: string,
+    email?: string,
     userName?: string
 }
 
 
 const createGroup = (req: Request, res: Response) => {
-    const email: string = req.body?.email
+    const userName: string = req.body?.userName
     const groupName: string = req.body.groupName
     const passcode: string = req.body.passcode
     const newGroup: NewGroup = { groupName: groupName, passcode: passcode, groupMembers: [] }
 
-    userModel.findOne({ email: email }, (err: string, user: NewUser) => {
+    userModel.findOne({ userName: userName }, (err: string, user: NewUser) => {
         if (err) {
             console.log(err);
             if (res.status != undefined) {
@@ -149,7 +151,7 @@ const createGroup = (req: Request, res: Response) => {
                     } else if (result) {
                         res.send({ message: "Group name already in use. Please, register with a new group name", status: false })
                     } else {
-                        let member: Group = { email: email }
+                        let member: Group = { userName: userName }
                         newGroup.groupMembers?.push(member)
                         console.log(newGroup);
                         groupModel.create(newGroup)
@@ -174,11 +176,11 @@ interface Group2 {
 
 
 const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
-    let email = req.body.email
+    let userName = req.body.userName
     let groupName = req.body.groupName
     let passcode = req.body.passcode
     try {
-        await userModel.findOne({ email: email }).then(
+        await userModel.findOne({ userName: userName }).then(
             (user: NewUser) => {
                 if (!user) {
                     res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false })
@@ -194,20 +196,30 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                 if (group.passcode != undefined) {
                                     bcryptjs.compare(passcode, group.passcode, (err, same) => {
                                         if (same) {
-                                            groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { email: email } } })
-                                                .then((ram) => {
-                                                    console.log(ram)
-                                                    switch (ram.acknowledged) {
-                                                        case true:
-                                                            res.send({ message: "Added to group successfuly", status: true })
-                                                            break;
-                                                        case false:
-                                                            res.send({ message: "You were unable to join group. Try again", status: false })
-                                                            break
-                                                        default:
-                                                            break;
+                                            try {
+                                                group.groupMembers?.map((i:any)=>{
+                                                    if (i.userName == userName) {
+                                                        res.send({message:"You are already in this group", status:false})
+                                                    }else{
+                                                        groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { userName: userName } } })
+                                                        .then((ram) => {
+                                                            console.log(ram)
+                                                            switch (ram.acknowledged) {
+                                                                case true:
+                                                                    res.send({ message: "Added to group successfuly", status: true })
+                                                                    break;
+                                                                case false:
+                                                                    res.send({ message: "You were unable to join group. Try again", status: false })
+                                                                    break
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        })
                                                     }
                                                 })
+                                            } catch (err) {
+                                                return err
+                                            }
 
                                         }
                                     })
@@ -419,8 +431,12 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
     }
 }
 
+const personalSavings = async (req: Request, res: Response, next: NextFunction) => {
+    let goalName = req.body.goal
+}
+
 const test = async (req: Request, res: Response, next: NextFunction) => {
-   
+
 }
 
 

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const contributions = new mongoose.Schema({
-    email: String,
+    userName: String,
     amount: Number
 })
 
