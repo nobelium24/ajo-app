@@ -11,7 +11,7 @@ const userSchema = new mongoose_1.default.Schema({
     userName: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
     password: { type: String, trim: true },
-    wallet: { type: Array }
+    wallet: { type: Number }
 });
 let saltRound = 10;
 userSchema.pre("save", function (next) {

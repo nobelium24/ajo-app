@@ -234,19 +234,82 @@ exports.joinGroup = joinGroup;
 const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let amount = req.body.amount;
     let groupName = req.body.groupName;
-    let email = req.body.email;
+    let userName = req.body.userName;
     try {
-        yield group_model_1.default.findOne({ groupName: groupName }).then((group) => {
-            if (!group) {
-                res.send({ message: "You can't make payment as you do not belong to a group", status: false });
+        yield user_model_1.default.findOne({ userName }).then((user) => {
+            if (!user) {
+                res.send({ message: "You don't have an account with us", status: false });
             }
             else {
-                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } })
+                try {
+                    group_model_1.default.findOne({ groupName: groupName }).then((group) => {
+                        if (!group) {
+                            res.send({ message: "You can't make payment as you do not belong to a group", status: false });
+                        }
+                        else {
+                            group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                .then((ram) => {
+                                console.log(ram);
+                                switch (ram.acknowledged) {
+                                    case true:
+                                        let newFund = user.wallet - amount;
+                                        if (newFund < 0) {
+                                            res.send({ message: "Insufficient funds. Please fund wallet", status: false });
+                                        }
+                                        else {
+                                            user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                                console.log(ram);
+                                                switch (ram.acknowledged) {
+                                                    case true:
+                                                        res.send({ message: "Payment made successfuly", status: true });
+                                                        break;
+                                                    case false:
+                                                        res.send({ message: "Payment failed", status: false });
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            });
+                                        }
+                                        break;
+                                    case false:
+                                        res.send({ message: "Payment failed", status: false });
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            });
+                        }
+                    });
+                }
+                catch (error) {
+                    res.status(501).send({ message: "Internal server error", status: false });
+                    return next(error);
+                }
+            }
+        });
+    }
+    catch (error) {
+        return error;
+    }
+});
+exports.addGroupAmount = addGroupAmount;
+const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const fund = req.body.fund;
+    const email = req.body.email;
+    try {
+        yield user_model_1.default.findOne({ email: email }).then((user) => {
+            if (!user) {
+                res.send({ message: "Account not found", status: false });
+            }
+            else {
+                let newFund = user.wallet + fund;
+                user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } })
                     .then((ram) => {
                     console.log(ram);
                     switch (ram.acknowledged) {
                         case true:
-                            res.send({ message: "Payment made successfuly", status: true });
+                            res.send({ message: "Wallet funded successfuly", status: true });
                             break;
                         case false:
                             res.send({ message: "Payment failed", status: false });
@@ -256,33 +319,6 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                     }
                 });
             }
-        });
-    }
-    catch (error) {
-        res.status(501).send({ message: "Internal server error", status: false });
-        return next(error);
-    }
-});
-exports.addGroupAmount = addGroupAmount;
-const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const fund = req.body.fund;
-    const email = req.body.email;
-    try {
-        yield user_model_1.default.findOne({ email: email }).then((user) => {
-            user_model_1.default.updateOne({ _id: user._id }, { $push: { wallet: fund } })
-                .then((ram) => {
-                console.log(ram);
-                switch (ram.acknowledged) {
-                    case true:
-                        res.send({ message: "Wallet funded successfuly", status: true });
-                        break;
-                    case false:
-                        res.send({ message: "Payment failed", status: false });
-                        break;
-                    default:
-                        break;
-                }
-            });
         });
     }
     catch (error) {

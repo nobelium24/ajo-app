@@ -16,6 +16,7 @@ interface NewUser {
     userName: string,
     email: string,
     password: string
+    wallet: number
 }
 
 
@@ -197,24 +198,24 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                     bcryptjs.compare(passcode, group.passcode, (err, same) => {
                                         if (same) {
                                             try {
-                                                group.groupMembers?.map((i:any)=>{
+                                                group.groupMembers?.map((i: any) => {
                                                     if (i.userName == userName) {
-                                                        res.send({message:"You are already in this group", status:false})
-                                                    }else{
+                                                        res.send({ message: "You are already in this group", status: false })
+                                                    } else {
                                                         groupModel.updateOne({ _id: group._id }, { $push: { groupMembers: { userName: userName } } })
-                                                        .then((ram) => {
-                                                            console.log(ram)
-                                                            switch (ram.acknowledged) {
-                                                                case true:
-                                                                    res.send({ message: "Added to group successfuly", status: true })
-                                                                    break;
-                                                                case false:
-                                                                    res.send({ message: "You were unable to join group. Try again", status: false })
-                                                                    break
-                                                                default:
-                                                                    break;
-                                                            }
-                                                        })
+                                                            .then((ram) => {
+                                                                console.log(ram)
+                                                                switch (ram.acknowledged) {
+                                                                    case true:
+                                                                        res.send({ message: "Added to group successfuly", status: true })
+                                                                        break;
+                                                                    case false:
+                                                                        res.send({ message: "You were unable to join group. Try again", status: false })
+                                                                        break
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                            })
                                                     }
                                                 })
                                             } catch (err) {
@@ -244,35 +245,67 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
 const addGroupAmount = async (req: Request, res: Response, next: NextFunction) => {
     let amount = req.body.amount
     let groupName = req.body.groupName
-    let email = req.body.email
+    let userName = req.body.userName
     try {
-        await groupModel.findOne({ groupName: groupName }).then(
-            (group: Group2) => {
-                if (!group) {
-                    res.send({ message: "You can't make payment as you do not belong to a group", status: false })
+        await userModel.findOne({ userName }).then(
+            (user: NewUser) => {
+                if (!user) {
+                    res.send({ message: "You don't have an account with us", status: false })
                 } else {
-                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { email: email, amount: amount } } })
-                        .then((ram) => {
-                            console.log(ram);
-                            switch (ram.acknowledged) {
-                                case true:
-                                    res.send({ message: "Payment made successfuly", status: true })
-                                    break;
-                                case false:
-                                    res.send({ message: "Payment failed", status: false })
-                                    break
-                                default:
-                                    break;
+                    try {
+                        groupModel.findOne({ groupName: groupName }).then(
+                            (group: Group2) => {
+                                if (!group) {
+                                    res.send({ message: "You can't make payment as you do not belong to a group", status: false })
+                                } else {
+                                    groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                        .then((ram) => {
+                                            console.log(ram);
+                                            switch (ram.acknowledged) {
+                                                case true:
+                                                    let newFund = user.wallet - amount
+                                                    if (newFund < 0) {
+                                                        res.send({ message: "Insufficient funds. Please fund wallet", status: false })
+                                                    } else {
+                                                        userModel.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                                            console.log(ram);
+                                                            switch (ram.acknowledged) {
+                                                                case true:
+                                                                    res.send({ message: "Payment made successfuly", status: true })
+                                                                    break;
+                                                                case false:
+                                                                    res.send({ message: "Payment failed", status: false })
+                                                                    break
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        })
+                                                    }
+
+
+                                                    break;
+                                                case false:
+                                                    res.send({ message: "Payment failed", status: false })
+                                                    break
+                                                default:
+                                                    break;
+                                            }
+
+                                        })
+
+                                }
                             }
-
-                        })
-
+                        )
+                    } catch (error) {
+                        res.status(501).send({ message: "Internal server error", status: false })
+                        return next(error)
+                    }
                 }
             }
         )
     } catch (error) {
-        res.status(501).send({ message: "Internal server error", status: false })
-        return next(error)
+
+        return error
     }
 }
 
@@ -283,21 +316,26 @@ const fundWallet = async (req: Request, res: Response, next: NextFunction) => {
     try {
         await userModel.findOne({ email: email }).then(
             (user: NewUser) => {
-                userModel.updateOne({ _id: user._id }, { $push: { wallet: fund } })
-                    .then((ram) => {
-                        console.log(ram);
-                        switch (ram.acknowledged) {
-                            case true:
-                                res.send({ message: "Wallet funded successfuly", status: true })
-                                break;
-                            case false:
-                                res.send({ message: "Payment failed", status: false })
-                                break
-                            default:
-                                break;
-                        }
-
-                    })
+                if (!user) {
+                    res.send({ message: "Account not found", status: false })
+                }else{
+                    let newFund = user.wallet + fund
+                    userModel.updateOne({ _id: user._id }, { $set: { wallet: newFund } })
+                        .then((ram) => {
+                            console.log(ram);
+                            switch (ram.acknowledged) {
+                                case true:
+                                    res.send({ message: "Wallet funded successfuly", status: true })
+                                    break;
+                                case false:
+                                    res.send({ message: "Payment failed", status: false })
+                                    break
+                                default:
+                                    break;
+                            }
+    
+                        })
+                }
             }
         )
     } catch (error) {
