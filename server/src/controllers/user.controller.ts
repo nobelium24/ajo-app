@@ -59,7 +59,7 @@ const registerUser = (req: Request, res: Response) => {
                         let form = new userModel(newUser)
                         form.save((err: string) => {
                             if (err) {
-                                console.log("an error occured");
+                                console.log("an error occured" ,err);
                                 res.send({ message: "user signup failed", status: false })
                             } else { res.send({ message: "registration successful", status: true }) }
                         })
