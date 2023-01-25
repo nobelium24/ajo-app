@@ -15,6 +15,9 @@ router.post("/grouppayment", user_controller_1.addGroupAmount);
 router.post("/fundwallet", user_controller_1.fundWallet);
 router.post("/forgotpassword", user_controller_1.forgotPasswordEmail);
 router.post("/resetpassword", user_controller_1.resetPassword);
+router.post("/verifybvn", user_controller_1.verifyBVN);
+router.post("/createsavings", user_controller_1.createSavingsPlan);
+router.post("/fundsavings", user_controller_1.fundSavingsPlan);
 router.post("/test", user_controller_1.test);
 router.post("/test2", (req, res) => {
     let email = req.body.email;

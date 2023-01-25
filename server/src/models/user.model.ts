@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
     userName: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
     password: {type:String, trim:true},
-    wallet:{type:Number}
+    bvnStatus:{type:Boolean, required:true, trim:true, default:false},
+    wallet:{type:Number, default:0}
 })
 
 let saltRound = 10

@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.test = exports.forgotPasswordEmail = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
+exports.fundSavingsPlan = exports.createSavingsPlan = exports.verifyBVN = exports.resetPassword = exports.test = exports.forgotPasswordEmail = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
 //@ts-ignore
 const user_model_1 = __importDefault(require("../models/user.model"));
 const group_model_1 = __importDefault(require("../models/group.model"));
+const savings_model_1 = __importDefault(require("../models/savings.model"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
@@ -137,26 +138,31 @@ const createGroup = (req, res) => {
                 res.send({ message: "You don't have an account with us. Kindly create an account to create an ajo group", status: false });
             }
             else {
-                group_model_1.default.findOne({ groupName: groupName }, (err, result) => {
-                    var _a;
-                    if (err) {
-                        console.log(err);
-                        if (res.status != undefined) {
-                            res.status(501);
-                            res.send({ message: "Internal server error", status: false });
+                if (user.bvnStatus === false) {
+                    res.send({ message: "You have to verify your BVN before you can create a group", status: false });
+                }
+                else {
+                    group_model_1.default.findOne({ groupName: groupName }, (err, result) => {
+                        var _a;
+                        if (err) {
+                            console.log(err);
+                            if (res.status != undefined) {
+                                res.status(501);
+                                res.send({ message: "Internal server error", status: false });
+                            }
                         }
-                    }
-                    else if (result) {
-                        res.send({ message: "Group name already in use. Please, register with a new group name", status: false });
-                    }
-                    else {
-                        let member = { userName: userName };
-                        (_a = newGroup.groupMembers) === null || _a === void 0 ? void 0 : _a.push(member);
-                        console.log(newGroup);
-                        group_model_1.default.create(newGroup);
-                        res.send({ message: "Group created successfuly", status: true });
-                    }
-                });
+                        else if (result) {
+                            res.send({ message: "Group name already in use. Please, register with a new group name", status: false });
+                        }
+                        else {
+                            let member = { userName: userName };
+                            (_a = newGroup.groupMembers) === null || _a === void 0 ? void 0 : _a.push(member);
+                            console.log(newGroup);
+                            group_model_1.default.create(newGroup);
+                            res.send({ message: "Group created successfuly", status: true });
+                        }
+                    });
+                }
             }
         }
     });
@@ -172,56 +178,61 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                 res.send({ message: "You don't have an account with us. Kindly create an account to join an ajo group", status: false });
             }
             else {
-                group_model_1.default.findOne({ groupName: groupName }, (err, group) => {
-                    console.log(group);
-                    if (err) {
-                        console.log(err);
-                    }
-                    else if (!group) {
-                        res.send({ message: "Group dosen't exist. kindly create a new group", status: false });
-                    }
-                    else {
-                        try {
-                            if (group.passcode != undefined) {
-                                bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
-                                    var _a;
-                                    if (same) {
-                                        try {
-                                            (_a = group.groupMembers) === null || _a === void 0 ? void 0 : _a.map((i) => {
-                                                if (i.userName == userName) {
-                                                    res.send({ message: "You are already in this group", status: false });
-                                                }
-                                                else {
-                                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { userName: userName } } })
-                                                        .then((ram) => {
-                                                        console.log(ram);
-                                                        switch (ram.acknowledged) {
-                                                            case true:
-                                                                res.send({ message: "Added to group successfuly", status: true });
-                                                                break;
-                                                            case false:
-                                                                res.send({ message: "You were unable to join group. Try again", status: false });
-                                                                break;
-                                                            default:
-                                                                break;
-                                                        }
-                                                    });
-                                                }
-                                            });
+                if (user.bvnStatus === false) {
+                    res.send({ message: "You have to verify your BVN before you can join a group", status: false });
+                }
+                else {
+                    group_model_1.default.findOne({ groupName: groupName }, (err, group) => {
+                        console.log(group);
+                        if (err) {
+                            console.log(err);
+                        }
+                        else if (!group) {
+                            res.send({ message: "Group dosen't exist. kindly create a new group", status: false });
+                        }
+                        else {
+                            try {
+                                if (group.passcode != undefined) {
+                                    bcryptjs_1.default.compare(passcode, group.passcode, (err, same) => {
+                                        var _a;
+                                        if (same) {
+                                            try {
+                                                (_a = group.groupMembers) === null || _a === void 0 ? void 0 : _a.map((i) => {
+                                                    if (i.userName == userName) {
+                                                        res.send({ message: "You are already in this group", status: false });
+                                                    }
+                                                    else {
+                                                        group_model_1.default.updateOne({ _id: group._id }, { $push: { groupMembers: { userName: userName } } })
+                                                            .then((ram) => {
+                                                            console.log(ram);
+                                                            switch (ram.acknowledged) {
+                                                                case true:
+                                                                    res.send({ message: "Added to group successfuly", status: true });
+                                                                    break;
+                                                                case false:
+                                                                    res.send({ message: "You were unable to join group. Try again", status: false });
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                            catch (err) {
+                                                return err;
+                                            }
                                         }
-                                        catch (err) {
-                                            return err;
-                                        }
-                                    }
-                                });
+                                    });
+                                }
+                            }
+                            catch (error) {
+                                res.status(501).send({ message: "Internal server error", status: false });
+                                return next(error);
                             }
                         }
-                        catch (error) {
-                            res.status(501).send({ message: "Internal server error", status: false });
-                            return next(error);
-                        }
-                    }
-                });
+                    });
+                }
             }
         });
     }
@@ -241,50 +252,55 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 res.send({ message: "You don't have an account with us", status: false });
             }
             else {
-                try {
-                    group_model_1.default.findOne({ groupName: groupName }).then((group) => {
-                        if (!group) {
-                            res.send({ message: "You can't make payment as you do not belong to a group", status: false });
-                        }
-                        else {
-                            let newFund = user.wallet - amount;
-                            if (newFund < 0) {
-                                res.send({ message: "Insufficient funds. Please fund wallet", status: false });
+                if (user.bvnStatus === false) {
+                    res.send({ message: "You have to verify your BVN before you can make a contribution", status: false });
+                }
+                else {
+                    try {
+                        group_model_1.default.findOne({ groupName: groupName }).then((group) => {
+                            if (!group) {
+                                res.send({ message: "You can't make payment as you do not belong to a group", status: false });
                             }
                             else {
-                                user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
-                                    console.log(ram);
-                                    switch (ram.acknowledged) {
-                                        case true:
-                                            group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                                .then((ram) => {
-                                                console.log(ram);
-                                                switch (ram.acknowledged) {
-                                                    case true:
-                                                        res.send({ message: "Payment made successfuly", status: true });
-                                                        break;
-                                                    case false:
-                                                        res.send({ message: "Payment failed", status: false });
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            });
-                                            break;
-                                        case false:
-                                            res.send({ message: "Payment failed", status: false });
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                });
+                                let newFund = user.wallet - amount;
+                                if (newFund < 0) {
+                                    res.send({ message: "Insufficient funds. Please fund wallet", status: false });
+                                }
+                                else {
+                                    user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                        console.log(ram);
+                                        switch (ram.acknowledged) {
+                                            case true:
+                                                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
+                                                    .then((ram) => {
+                                                    console.log(ram);
+                                                    switch (ram.acknowledged) {
+                                                        case true:
+                                                            res.send({ message: "Payment made successfuly", status: true });
+                                                            break;
+                                                        case false:
+                                                            res.send({ message: "Payment failed", status: false });
+                                                            break;
+                                                        default:
+                                                            break;
+                                                    }
+                                                });
+                                                break;
+                                            case false:
+                                                res.send({ message: "Payment failed", status: false });
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    });
+                                }
                             }
-                        }
-                    });
-                }
-                catch (error) {
-                    res.status(501).send({ message: "Internal server error", status: false });
-                    return next(error);
+                        });
+                    }
+                    catch (error) {
+                        res.status(501).send({ message: "Internal server error", status: false });
+                        return next(error);
+                    }
                 }
             }
         });
@@ -296,28 +312,33 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 exports.addGroupAmount = addGroupAmount;
 const fundWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const fund = req.body.fund;
-    const email = req.body.email;
+    const userName = req.body.userName;
     try {
-        yield user_model_1.default.findOne({ email: email }).then((user) => {
+        yield user_model_1.default.findOne({ userName: userName }).then((user) => {
             if (!user) {
                 res.send({ message: "Account not found", status: false });
             }
             else {
-                let newFund = user.wallet + fund;
-                user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } })
-                    .then((ram) => {
-                    console.log(ram);
-                    switch (ram.acknowledged) {
-                        case true:
-                            res.send({ message: "Wallet funded successfuly", status: true });
-                            break;
-                        case false:
-                            res.send({ message: "Payment failed", status: false });
-                            break;
-                        default:
-                            break;
-                    }
-                });
+                if (user.bvnStatus === false) {
+                    res.send({ message: "You have to verify your BVN before you can fund wallet", status: false });
+                }
+                else {
+                    let newFund = user.wallet + fund;
+                    user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } })
+                        .then((ram) => {
+                        console.log(ram);
+                        switch (ram.acknowledged) {
+                            case true:
+                                res.send({ message: "Wallet funded successfuly", status: true });
+                                break;
+                            case false:
+                                res.send({ message: "Payment failed", status: false });
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                }
             }
         });
     }
@@ -446,9 +467,159 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.resetPassword = resetPassword;
-const personalSavings = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    let goalName = req.body.goal;
+const verifyBVN = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let userName = req.body.userName;
+    let status = req.body.status;
+    try {
+        yield user_model_1.default.findOne({ userName: userName }).then((user) => {
+            switch (user) {
+                case !user:
+                    res.send({ message: "You don't have an account with us.", status: false });
+                    break;
+                case user:
+                    if (user.bvnStatus === true) {
+                        res.send({ message: "BVN already verified", status: true });
+                    }
+                    else {
+                        if (status !== "success") {
+                            res.send({ message: "BVN verification failed. Please try again", status: false });
+                        }
+                        else {
+                            user_model_1.default.updateOne({ _id: user._id }, { $set: { bvnStatus: true } })
+                                .then((ram) => {
+                                console.log(ram);
+                                switch (ram.acknowledged) {
+                                    case true:
+                                        res.send({ message: "BVN verification Sccessful", status: true });
+                                        break;
+                                    case false:
+                                        res.send({ message: "BVN status not recorded. Try again", status: false });
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            });
+                        }
+                    }
+                default:
+                    break;
+            }
+        });
+    }
+    catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
+        return next(error);
+    }
 });
+exports.verifyBVN = verifyBVN;
+const createSavingsPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let newPlan = req.body;
+    let savingsName = req.body.savingsName;
+    let userName = req.body.userName;
+    try {
+        yield user_model_1.default.findOne({ userName: userName }).then((user) => {
+            switch (user) {
+                case !user:
+                    res.send({ message: "You don't have an account with us.", status: false });
+                    break;
+                case user:
+                    if (user.bvnStatus === false) {
+                        res.send({ message: "You have to verify your BVN before you can create a savings plan", status: false });
+                    }
+                    else {
+                        savings_model_1.default.findOne({ userName: userName }).then((save) => {
+                            if (save) {
+                                res.send({ message: "You already have a savings plan.", status: false });
+                            }
+                            else {
+                                let form = new savings_model_1.default(newPlan);
+                                form.save((err) => {
+                                    if (err) {
+                                        console.log(err);
+                                        res.send({ message: "Plan creation failed. Try again", status: false });
+                                    }
+                                    else {
+                                        res.send({ message: "Plan creation successful", status: true });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                default:
+                    break;
+            }
+        });
+    }
+    catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
+        return next(error);
+    }
+});
+exports.createSavingsPlan = createSavingsPlan;
+const fundSavingsPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    let savingsName = req.body.savingsName;
+    let userName = req.body.userName;
+    let amountSaved = req.body.amountSaved;
+    try {
+        yield user_model_1.default.findOne({ userName: userName }).then((user) => {
+            switch (user) {
+                case !user:
+                    res.send({ message: "You don't have an account with us.", status: false });
+                    break;
+                case user:
+                    if (user.bvnStatus === false) {
+                        res.send({ message: "You have to verify your BVN before you can fund savings plan", status: false });
+                    }
+                    else {
+                        let newFund = user.wallet - amountSaved;
+                        if (newFund < 0) {
+                            res.send({ message: "Insufficient funds. Please fund wallet", status: false });
+                        }
+                        else {
+                            user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: newFund } }).then((ram) => {
+                                console.log(ram);
+                                switch (ram.acknowledged) {
+                                    case true:
+                                        savings_model_1.default.findOne({ userName: userName }).then((found) => {
+                                            if (found) {
+                                                let newMoney = amountSaved + found.amountSaved;
+                                                savings_model_1.default.updateOne({ _id: found._id }, { $set: { amountSaved: newMoney } })
+                                                    .then((ram) => {
+                                                    console.log(ram);
+                                                    switch (ram.acknowledged) {
+                                                        case true:
+                                                            res.send({ message: "Funds saved successfuly", status: true });
+                                                            break;
+                                                        case false:
+                                                            res.send({ message: "Funds not saced. Try again", status: false });
+                                                            break;
+                                                        default:
+                                                            break;
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        break;
+                                    case false:
+                                        res.send({ message: "Payment failed", status: false });
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            });
+                        }
+                    }
+                default:
+                    break;
+            }
+        });
+    }
+    catch (error) {
+        res.status(501).send({ message: "Internal server error", status: false });
+        return next(error);
+    }
+});
+exports.fundSavingsPlan = fundSavingsPlan;
 const test = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.test = test;

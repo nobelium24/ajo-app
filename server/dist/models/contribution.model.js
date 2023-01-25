@@ -6,6 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const contributions = new mongoose_1.default.Schema({
     userName: String,
-    amount: Number
+    amount: { type: Number, default: 0 }
 });
 exports.default = contributions;
