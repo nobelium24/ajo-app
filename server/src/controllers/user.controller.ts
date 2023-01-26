@@ -160,7 +160,16 @@ const createGroup = (req: Request, res: Response) => {
                             let member: Group = { userName: userName }
                             newGroup.groupMembers?.push(member)
                             console.log(newGroup);
-                            groupModel.create(newGroup)
+                            groupModel.create(newGroup).then((ram)=>{
+                                ram? groupModel.findOne({groupName:groupName}).then((group:Group2)=>{
+                                    group?  groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                                        ram ? res.send({ message: "Group created successfully", status: true }) :
+                                            res.send({ message: "You were unable to join group. Try again", status: false })
+                                    }) :res.send({message:"group not in existence"})
+                                }): res.send({message:"group not in existence"})
+                                
+                            })
+
                             res.send({ message: "Group created successfuly", status: true })
 
                         }
@@ -210,7 +219,10 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                                                     console.log(ram)
                                                                     switch (ram.acknowledged) {
                                                                         case true:
-                                                                            res.send({ message: "Added to group successfuly", status: true })
+                                                                            groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                                                                                ram ? res.send({ message: "Added to group successfuly", status: true }) :
+                                                                                    res.send({ message: "You were unable to join group. Try again", status: false })
+                                                                            })
                                                                             break;
                                                                         case false:
                                                                             res.send({ message: "You were unable to join group. Try again", status: false })
@@ -286,8 +298,8 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                         if (group.generalAmount != undefined) {
                                                             let updatedContribution = group.generalAmount[0].amount + amount
                                                             console.log(updatedContribution);
-                                                            
-                                                            groupModel.updateOne({ _id: group._id, "generalAmount.userName": user.userName }, 
+
+                                                            groupModel.updateOne({ _id: group._id, "generalAmount.userName": user.userName },
                                                                 { $set: { "generalAmount.$.amount": updatedContribution } })
                                                                 .then((ram) => {
                                                                     console.log(ram);
@@ -633,7 +645,7 @@ const fundSavingsPlan = async (req: Request, res: Response, next: NextFunction) 
                                                                         res.send({ message: "Funds saved successfuly", status: true })
                                                                         break;
                                                                     case false:
-                                                                        res.send({ message: "Funds not saced. Try again", status: false })
+                                                                        res.send({ message: "Funds not saved. Try again", status: false })
                                                                         break
                                                                     default:
                                                                         break;

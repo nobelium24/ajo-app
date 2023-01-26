@@ -158,7 +158,14 @@ const createGroup = (req, res) => {
                             let member = { userName: userName };
                             (_a = newGroup.groupMembers) === null || _a === void 0 ? void 0 : _a.push(member);
                             console.log(newGroup);
-                            group_model_1.default.create(newGroup);
+                            group_model_1.default.create(newGroup).then((ram) => {
+                                ram ? group_model_1.default.findOne({ groupName: groupName }).then((group) => {
+                                    group ? group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                                        ram ? res.send({ message: "Group created successfully", status: true }) :
+                                            res.send({ message: "You were unable to join group. Try again", status: false });
+                                    }) : res.send({ message: "group not in existence" });
+                                }) : res.send({ message: "group not in existence" });
+                            });
                             res.send({ message: "Group created successfuly", status: true });
                         }
                     });
@@ -207,7 +214,10 @@ const joinGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                                                             console.log(ram);
                                                             switch (ram.acknowledged) {
                                                                 case true:
-                                                                    res.send({ message: "Added to group successfuly", status: true });
+                                                                    group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                                                                        ram ? res.send({ message: "Added to group successfuly", status: true }) :
+                                                                            res.send({ message: "You were unable to join group. Try again", status: false });
+                                                                    });
                                                                     break;
                                                                 case false:
                                                                     res.send({ message: "You were unable to join group. Try again", status: false });
@@ -599,7 +609,7 @@ const fundSavingsPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                                             res.send({ message: "Funds saved successfuly", status: true });
                                                             break;
                                                         case false:
-                                                            res.send({ message: "Funds not saced. Try again", status: false });
+                                                            res.send({ message: "Funds not saved. Try again", status: false });
                                                             break;
                                                         default:
                                                             break;
