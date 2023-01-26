@@ -59,7 +59,7 @@ const registerUser = (req: Request, res: Response) => {
                         let form = new userModel(newUser)
                         form.save((err: string) => {
                             if (err) {
-                                console.log("an error occured" ,err);
+                                console.log("an error occured", err);
                                 res.send({ message: "user signup failed", status: false })
                             } else { res.send({ message: "registration successful", status: true }) }
                         })
@@ -173,13 +173,7 @@ const createGroup = (req: Request, res: Response) => {
 }
 
 
-interface Group2 {
-    readonly _id?: string,
-    groupName?: string,
-    passcode?: string,
-    groupMembers?: [],
-    amount?: [{userName?:string, amount?:number}]
-}
+
 
 
 const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
@@ -251,6 +245,13 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
+interface Group2 {
+    readonly _id?: string,
+    groupName?: string,
+    passcode?: string,
+    groupMembers?: [],
+    generalAmount?: [{ userName?: string, amount?: number }]
+}
 
 const addGroupAmount = async (req: Request, res: Response, next: NextFunction) => {
     let amount = req.body.amount
@@ -282,21 +283,33 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                 switch (ram.acknowledged) {
                                                     case true:
 
-                                                        
-                                                        groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                                            .then((ram) => {
-                                                                console.log(ram);
-                                                                switch (ram.acknowledged) {
-                                                                    case true:
-                                                                        res.send({ message: "Payment made successfuly", status: true })
-                                                                        break;
-                                                                    case false:
-                                                                        res.send({ message: "Payment failed", status: false })
-                                                                        break
-                                                                    default:
-                                                                        break;
-                                                                }
-                                                            })
+                                                        if (group.generalAmount != undefined) {
+                                                            let updatedContribution = group.generalAmount[0].amount + amount
+                                                            console.log(updatedContribution);
+                                                            
+                                                            groupModel.updateOne({ _id: group._id, "generalAmount.userName": user.userName }, 
+                                                                { $set: { "generalAmount.$.amount": updatedContribution } })
+                                                                .then((ram) => {
+                                                                    console.log(ram);
+                                                                    switch (ram.acknowledged) {
+                                                                        case true:
+                                                                            res.send({ message: "Payment made successfuly", status: true })
+                                                                            break;
+                                                                        case false:
+                                                                            let reversedFunds = user.wallet + amount
+                                                                            userModel.updateOne({ _id: user._id }, { $set: { wallet: reversedFunds } }).
+                                                                                then((goat) => {
+                                                                                    goat.acknowledged ? res.send({ message: "Payment failed. Money reversed successlully", status: false }) : res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false })
+                                                                                })
+
+                                                                            break
+                                                                        default:
+                                                                            break;
+                                                                    }
+                                                                })
+                                                        }
+
+
                                                         break;
                                                     case false:
                                                         res.send({ message: "Payment failed", status: false })
@@ -608,24 +621,24 @@ const fundSavingsPlan = async (req: Request, res: Response, next: NextFunction) 
                                     console.log(ram);
                                     switch (ram.acknowledged) {
                                         case true:
-                                            savingsModel.findOne({userName:userName}).then(
-                                                (found)=>{
+                                            savingsModel.findOne({ userName: userName }).then(
+                                                (found) => {
                                                     if (found) {
                                                         let newMoney = amountSaved + found.amountSaved
                                                         savingsModel.updateOne({ _id: found._id }, { $set: { amountSaved: newMoney } })
-                                                        .then((ram) => {
-                                                            console.log(ram);
-                                                            switch (ram.acknowledged) {
-                                                                case true:
-                                                                    res.send({ message: "Funds saved successfuly", status: true })
-                                                                    break;
-                                                                case false:
-                                                                    res.send({ message: "Funds not saced. Try again", status: false })
-                                                                    break
-                                                                default:
-                                                                    break;
-                                                            }
-                                                        })
+                                                            .then((ram) => {
+                                                                console.log(ram);
+                                                                switch (ram.acknowledged) {
+                                                                    case true:
+                                                                        res.send({ message: "Funds saved successfuly", status: true })
+                                                                        break;
+                                                                    case false:
+                                                                        res.send({ message: "Funds not saced. Try again", status: false })
+                                                                        break
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                            })
                                                     }
                                                 }
                                             )

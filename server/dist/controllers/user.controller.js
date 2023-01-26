@@ -271,20 +271,28 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                                         console.log(ram);
                                         switch (ram.acknowledged) {
                                             case true:
-                                                group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: amount } } })
-                                                    .then((ram) => {
-                                                    console.log(ram);
-                                                    switch (ram.acknowledged) {
-                                                        case true:
-                                                            res.send({ message: "Payment made successfuly", status: true });
-                                                            break;
-                                                        case false:
-                                                            res.send({ message: "Payment failed", status: false });
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
-                                                });
+                                                if (group.generalAmount != undefined) {
+                                                    let updatedContribution = group.generalAmount[0].amount + amount;
+                                                    console.log(updatedContribution);
+                                                    group_model_1.default.updateOne({ _id: group._id, "generalAmount.userName": user.userName }, { $set: { "generalAmount.$.amount": updatedContribution } })
+                                                        .then((ram) => {
+                                                        console.log(ram);
+                                                        switch (ram.acknowledged) {
+                                                            case true:
+                                                                res.send({ message: "Payment made successfuly", status: true });
+                                                                break;
+                                                            case false:
+                                                                let reversedFunds = user.wallet + amount;
+                                                                user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: reversedFunds } }).
+                                                                    then((goat) => {
+                                                                    goat.acknowledged ? res.send({ message: "Payment failed. Money reversed successlully", status: false }) : res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false });
+                                                                });
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    });
+                                                }
                                                 break;
                                             case false:
                                                 res.send({ message: "Payment failed", status: false });
