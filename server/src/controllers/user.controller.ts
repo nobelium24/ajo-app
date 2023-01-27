@@ -571,7 +571,7 @@ interface Save {
 }
 const createSavingsPlan = async (req: Request, res: Response, next: NextFunction) => {
     let newPlan = req.body
-    let savingsName = req.body.savingsName
+    // let savingsName = req.body.savingsName
     let userName = req.body.userName
 
     try {

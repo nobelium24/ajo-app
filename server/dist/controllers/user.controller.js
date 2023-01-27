@@ -166,7 +166,7 @@ const createGroup = (req, res) => {
                                     }) : res.send({ message: "group not in existence" });
                                 }) : res.send({ message: "group not in existence" });
                             });
-                            res.send({ message: "Group created successfuly", status: true });
+                            // res.send({ message: "Group created successfuly", status: true })
                         }
                     });
                 }
@@ -295,7 +295,9 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                                                                 let reversedFunds = user.wallet + amount;
                                                                 user_model_1.default.updateOne({ _id: user._id }, { $set: { wallet: reversedFunds } }).
                                                                     then((goat) => {
-                                                                    goat.acknowledged ? res.send({ message: "Payment failed. Money reversed successlully", status: false }) : res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false });
+                                                                    goat.acknowledged ?
+                                                                        res.send({ message: "Payment failed. Money reversed successlully", status: false }) :
+                                                                        res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false });
                                                                 });
                                                                 break;
                                                             default:
@@ -395,7 +397,8 @@ const forgotPasswordEmail = (req, res, next) => __awaiter(void 0, void 0, void 0
                         <div>
                           <h2 style="color:#2036ea ;">Message :-</h2>
                           <p>
-                            Dear ${userName}, kindly input the code:(${token}) to change your password. This code will expire in 5 minutes. Please don't share with anyone.
+                            Dear ${userName}, kindly input the code:(${token}) to change your password. 
+                            This code will expire in 5 minutes. Please don't share with anyone.
                           </p>
                         </div>
                         <p style="color:#2036ea ;"><i>The AJO Team.</i></p>
@@ -532,7 +535,7 @@ const verifyBVN = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 exports.verifyBVN = verifyBVN;
 const createSavingsPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let newPlan = req.body;
-    let savingsName = req.body.savingsName;
+    // let savingsName = req.body.savingsName
     let userName = req.body.userName;
     try {
         yield user_model_1.default.findOne({ userName: userName }).then((user) => {
