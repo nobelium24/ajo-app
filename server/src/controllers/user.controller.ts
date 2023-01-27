@@ -170,7 +170,7 @@ const createGroup = (req: Request, res: Response) => {
                                 
                             })
 
-                            res.send({ message: "Group created successfuly", status: true })
+                            // res.send({ message: "Group created successfuly", status: true })
 
                         }
                     })
@@ -219,7 +219,8 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                                                     console.log(ram)
                                                                     switch (ram.acknowledged) {
                                                                         case true:
-                                                                            groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                                                                            groupModel.updateOne({ _id: group._id }, 
+                                                                                { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
                                                                                 ram ? res.send({ message: "Added to group successfuly", status: true }) :
                                                                                     res.send({ message: "You were unable to join group. Try again", status: false })
                                                                             })
@@ -311,7 +312,9 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                                             let reversedFunds = user.wallet + amount
                                                                             userModel.updateOne({ _id: user._id }, { $set: { wallet: reversedFunds } }).
                                                                                 then((goat) => {
-                                                                                    goat.acknowledged ? res.send({ message: "Payment failed. Money reversed successlully", status: false }) : res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false })
+                                                                                    goat.acknowledged ? 
+                                                                                    res.send({ message: "Payment failed. Money reversed successlully", status: false }) : 
+                                                                                    res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false })
                                                                                 })
 
                                                                             break
@@ -422,7 +425,8 @@ const forgotPasswordEmail = async (req: Request, res: Response, next: NextFuncti
                         <div>
                           <h2 style="color:#2036ea ;">Message :-</h2>
                           <p>
-                            Dear ${userName}, kindly input the code:(${token}) to change your password. This code will expire in 5 minutes. Please don't share with anyone.
+                            Dear ${userName}, kindly input the code:(${token}) to change your password. 
+                            This code will expire in 5 minutes. Please don't share with anyone.
                           </p>
                         </div>
                         <p style="color:#2036ea ;"><i>The AJO Team.</i></p>
