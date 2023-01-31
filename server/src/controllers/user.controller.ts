@@ -160,14 +160,16 @@ const createGroup = (req: Request, res: Response) => {
                             let member: Group = { userName: userName }
                             newGroup.groupMembers?.push(member)
                             console.log(newGroup);
-                            groupModel.create(newGroup).then((ram)=>{
-                                ram? groupModel.findOne({groupName:groupName}).then((group:Group2)=>{
-                                    group?  groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
+                            groupModel.create(newGroup).then((ram) => {
+                                ram ? groupModel.findOne({ groupName: groupName }).then((group: Group2) => {
+                                    group ? groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
                                         ram ? res.send({ message: "Group created successfully", status: true }) :
-                                            res.send({ message: "You were unable to join group. Try again", status: false })
-                                    }) :res.send({message:"group not in existence"})
-                                }): res.send({message:"group not in existence"})
-                                
+                                            
+                                            res.send({ message: "Group creation failed. Try again", status: false })
+                                    }) : 
+                                          res.send({ message: "group not in existence" })
+                                }) : res.send({ message: "group not in existence" })
+
                             })
 
                             // res.send({ message: "Group created successfuly", status: true })
@@ -219,11 +221,11 @@ const joinGroup = async (req: Request, res: Response, next: NextFunction) => {
                                                                     console.log(ram)
                                                                     switch (ram.acknowledged) {
                                                                         case true:
-                                                                            groupModel.updateOne({ _id: group._id }, 
+                                                                            groupModel.updateOne({ _id: group._id },
                                                                                 { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
-                                                                                ram ? res.send({ message: "Added to group successfuly", status: true }) :
-                                                                                    res.send({ message: "You were unable to join group. Try again", status: false })
-                                                                            })
+                                                                                    ram ? res.send({ message: "Added to group successfuly", status: true }) :
+                                                                                        res.send({ message: "You were unable to join group. Try again", status: false })
+                                                                                })
                                                                             break;
                                                                         case false:
                                                                             res.send({ message: "You were unable to join group. Try again", status: false })
@@ -263,7 +265,8 @@ interface Group2 {
     groupName?: string,
     passcode?: string,
     groupMembers?: [],
-    generalAmount?: [{ userName?: string, amount?: number }]
+    generalAmount?: [{ userName?: string, amount?: number }],
+    groupWallet?: number
 }
 
 const addGroupAmount = async (req: Request, res: Response, next: NextFunction) => {
@@ -300,6 +303,11 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                             let updatedContribution = group.generalAmount[0].amount + amount
                                                             console.log(updatedContribution);
 
+                                                            let updatedGroupWallet = group.groupWallet + amount
+                                                            groupModel.updateOne({ _id: group._id }, { $set: { groupWallet: updatedGroupWallet } }).then((ram) => {
+                                                                console.log(ram);
+                                                            })
+
                                                             groupModel.updateOne({ _id: group._id, "generalAmount.userName": user.userName },
                                                                 { $set: { "generalAmount.$.amount": updatedContribution } })
                                                                 .then((ram) => {
@@ -312,9 +320,9 @@ const addGroupAmount = async (req: Request, res: Response, next: NextFunction) =
                                                                             let reversedFunds = user.wallet + amount
                                                                             userModel.updateOne({ _id: user._id }, { $set: { wallet: reversedFunds } }).
                                                                                 then((goat) => {
-                                                                                    goat.acknowledged ? 
-                                                                                    res.send({ message: "Payment failed. Money reversed successlully", status: false }) : 
-                                                                                    res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false })
+                                                                                    goat.acknowledged ?
+                                                                                        res.send({ message: "Payment failed. Money reversed successlully", status: false }) :
+                                                                                        res.send({ message: "Payment failed. Reversal failed. Contact admin", status: false })
                                                                                 })
 
                                                                             break

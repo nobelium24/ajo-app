@@ -6,7 +6,8 @@ const groupSchema = new mongoose.Schema({
     groupName: { type: String, required: true, unique: true, trim: true },
     passcode: {type:String, trim:true},
     groupMembers:[members],
-    generalAmount:[contributions]
+    generalAmount:[contributions], 
+    groupWallet: {type:Number,default:0 }
 })
 
 let saltRound = 15

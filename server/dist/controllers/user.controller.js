@@ -162,8 +162,9 @@ const createGroup = (req, res) => {
                                 ram ? group_model_1.default.findOne({ groupName: groupName }).then((group) => {
                                     group ? group_model_1.default.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
                                         ram ? res.send({ message: "Group created successfully", status: true }) :
-                                            res.send({ message: "You were unable to join group. Try again", status: false });
-                                    }) : res.send({ message: "group not in existence" });
+                                            res.send({ message: "Group creation failed. Try again", status: false });
+                                    }) :
+                                        res.send({ message: "group not in existence" });
                                 }) : res.send({ message: "group not in existence" });
                             });
                             // res.send({ message: "Group created successfuly", status: true })
@@ -284,6 +285,10 @@ const addGroupAmount = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                                                 if (group.generalAmount != undefined) {
                                                     let updatedContribution = group.generalAmount[0].amount + amount;
                                                     console.log(updatedContribution);
+                                                    let updatedGroupWallet = group.groupWallet + amount;
+                                                    group_model_1.default.updateOne({ _id: group._id }, { $set: { groupWallet: updatedGroupWallet } }).then((ram) => {
+                                                        console.log(ram);
+                                                    });
                                                     group_model_1.default.updateOne({ _id: group._id, "generalAmount.userName": user.userName }, { $set: { "generalAmount.$.amount": updatedContribution } })
                                                         .then((ram) => {
                                                         console.log(ram);
