@@ -25,10 +25,10 @@ if (URI != undefined) {
     })
 }
 
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 
-app.use((req: Request, res: Response, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).send({status:"Not found"})
     next()
 })
