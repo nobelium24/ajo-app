@@ -1,6 +1,7 @@
 import express from "express"
 const router = express.Router()
-import { registerUser, signIn, createGroup, test, joinGroup, addGroupAmount, fundWallet, forgotPasswordEmail, resetPassword, verifyBVN, createSavingsPlan, fundSavingsPlan } from "../controllers/user.controller"
+import { registerUser, signIn, createGroup, test, joinGroup, addGroupAmount, fundWallet, forgotPasswordEmail,
+     resetPassword, verifyBVN, createSavingsPlan, fundSavingsPlan, dashCheck } from "../controllers/user.controller"
 import groupModel from "../models/group.model"
 
 router.post("/signup", registerUser)
@@ -15,6 +16,7 @@ router.post("/verifybvn", verifyBVN)
 router.post("/createsavings", createSavingsPlan)
 router.post("/fundsavings", fundSavingsPlan)
 router.post("/test", test)
+router.get("/dashcheck", dashCheck)
 router.post("/test2", (req, res) => {
     let email  = req.body.email
     let groupName  = req.body.groupName

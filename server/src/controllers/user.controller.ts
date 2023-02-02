@@ -91,7 +91,7 @@ const signIn = async (req: Request, res: Response, next: NextFunction) => {
                             switch (same) {
                                 case same:
                                     if (SECRET != undefined) {
-                                        const token = jsonwebtoken.sign({ email }, SECRET)
+                                        const token = jsonwebtoken.sign({ email, userName }, SECRET, { expiresIn: "128h" })
                                         console.log(token);
                                         res.send({
                                             message: "Welcome", token: token, status: true,
@@ -117,6 +117,31 @@ const signIn = async (req: Request, res: Response, next: NextFunction) => {
         res.status(501).send({ message: "Internal server error", status: false })
         return next(error)
 
+    }
+}
+
+const dashCheck = (req: Request, res: Response) => {
+    const auth = req.headers.authorization
+    if (auth != undefined) {
+        const token = auth.split(' ')[1]
+        // console.log(request.headers.authorization)
+        // const token = request.token
+        console.log(token)
+        if (SECRET != undefined) {
+            jsonwebtoken.verify(token, SECRET, (err, decoded) => {
+                if (err) {
+                    console.log(err.message)
+                    res.send({ message: "failed" })
+                }
+
+                else {
+                    console.log(decoded)
+                   if (decoded != undefined) {
+                    res.send({ message: 'verification successful', status:true})
+                   }
+                }
+            })
+        }
     }
 }
 
@@ -164,10 +189,10 @@ const createGroup = (req: Request, res: Response) => {
                                 ram ? groupModel.findOne({ groupName: groupName }).then((group: Group2) => {
                                     group ? groupModel.updateOne({ _id: group._id }, { $push: { generalAmount: { userName: userName, amount: 0 } } }).then((ram) => {
                                         ram ? res.send({ message: "Group created successfully", status: true }) :
-                                            
+
                                             res.send({ message: "Group creation failed. Try again", status: false })
-                                    }) : 
-                                          res.send({ message: "group not in existence" })
+                                    }) :
+                                        res.send({ message: "group not in existence" })
                                 }) : res.send({ message: "group not in existence" })
 
                             })
@@ -694,5 +719,6 @@ const test = async (req: Request, res: Response, next: NextFunction) => {
 }
 
 
-export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet, forgotPasswordEmail, test, resetPassword, verifyBVN, createSavingsPlan, fundSavingsPlan }
+export { registerUser, signIn, createGroup, joinGroup, addGroupAmount, fundWallet, 
+    forgotPasswordEmail, test, resetPassword, verifyBVN, createSavingsPlan, fundSavingsPlan, dashCheck }
 // module.exports = { registerUser }

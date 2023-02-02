@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fundSavingsPlan = exports.createSavingsPlan = exports.verifyBVN = exports.resetPassword = exports.test = exports.forgotPasswordEmail = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
+exports.dashCheck = exports.fundSavingsPlan = exports.createSavingsPlan = exports.verifyBVN = exports.resetPassword = exports.test = exports.forgotPasswordEmail = exports.fundWallet = exports.addGroupAmount = exports.joinGroup = exports.createGroup = exports.signIn = exports.registerUser = void 0;
 //@ts-ignore
 const user_model_1 = __importDefault(require("../models/user.model"));
 const group_model_1 = __importDefault(require("../models/group.model"));
@@ -90,7 +90,7 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
                             switch (same) {
                                 case same:
                                     if (SECRET != undefined) {
-                                        const token = jsonwebtoken_1.default.sign({ email }, SECRET);
+                                        const token = jsonwebtoken_1.default.sign({ email, userName }, SECRET, { expiresIn: "128h" });
                                         console.log(token);
                                         res.send({
                                             message: "Welcome", token: token, status: true,
@@ -119,6 +119,30 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.signIn = signIn;
+const dashCheck = (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth != undefined) {
+        const token = auth.split(' ')[1];
+        // console.log(request.headers.authorization)
+        // const token = request.token
+        console.log(token);
+        if (SECRET != undefined) {
+            jsonwebtoken_1.default.verify(token, SECRET, (err, decoded) => {
+                if (err) {
+                    console.log(err.message);
+                    res.send({ message: "failed" });
+                }
+                else {
+                    console.log(decoded);
+                    if (decoded != undefined) {
+                        res.send({ message: 'verification successful', status: true });
+                    }
+                }
+            });
+        }
+    }
+};
+exports.dashCheck = dashCheck;
 const createGroup = (req, res) => {
     var _a;
     const userName = (_a = req.body) === null || _a === void 0 ? void 0 : _a.userName;

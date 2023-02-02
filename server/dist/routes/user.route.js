@@ -19,6 +19,7 @@ router.post("/verifybvn", user_controller_1.verifyBVN);
 router.post("/createsavings", user_controller_1.createSavingsPlan);
 router.post("/fundsavings", user_controller_1.fundSavingsPlan);
 router.post("/test", user_controller_1.test);
+router.get("/dashcheck", user_controller_1.dashCheck);
 router.post("/test2", (req, res) => {
     let email = req.body.email;
     let groupName = req.body.groupName;
