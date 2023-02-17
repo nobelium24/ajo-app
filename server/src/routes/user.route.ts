@@ -3,9 +3,11 @@ const router = express.Router()
 import { registerUser, signIn, createGroup, test, joinGroup, addGroupAmount, fundWallet, forgotPasswordEmail,
      resetPassword, verifyBVN, createSavingsPlan, fundSavingsPlan, dashCheck } from "../controllers/user.controller"
 import groupModel from "../models/group.model"
+import { validate } from "../middlewares/validate"
+import { userValidationSchema, userLoginValidationSchema } from "../middlewares/user.validation"
 
-router.post("/signup", registerUser)
-router.post("/signin", signIn)
+router.post("/signup", validate(userValidationSchema),registerUser)
+router.post("/signin", validate(userLoginValidationSchema),signIn)
 router.post("/creategroup", createGroup)
 router.post("/joingroup", joinGroup)
 router.post("/grouppayment", addGroupAmount)

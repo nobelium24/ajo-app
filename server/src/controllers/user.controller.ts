@@ -462,7 +462,7 @@ const forgotPasswordEmail = async (req: Request, res: Response, next: NextFuncti
                             This code will expire in 5 minutes. Please don't share with anyone.
                           </p>
                         </div>
-                        <p style="color:#2036ea ;"><i>The AJO Team.</i></p>
+                        <p style="color:#2036ea ;"><i>KIK cosmetics.</i></p>
                         </div>
                         `
                         let mail = process.env.GMAIL
@@ -477,8 +477,8 @@ const forgotPasswordEmail = async (req: Request, res: Response, next: NextFuncti
                         let mailOptions = {
                             from: "",
                             to: `${email}`,
-                            subject: "AJO —— Support Message",
-                            text: "AJO",
+                            subject: "KIK COSMETICS —— Support Message",
+                            text: "Reset password",
                             html: contactTemplate,
                         }
                         transporter.sendMail(mailOptions, function (error, info) {
