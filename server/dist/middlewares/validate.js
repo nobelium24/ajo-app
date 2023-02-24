@@ -19,7 +19,7 @@ const validate = (schema) => (req, res, next) => __awaiter(void 0, void 0, void 
     }
     catch (error) {
         console.log(error);
-        res.send({ message: error.message });
+        res.status(409).send({ message: error.message });
     }
 });
 exports.validate = validate;

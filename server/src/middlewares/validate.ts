@@ -15,7 +15,7 @@ export const validate = (schema: Schema) => async (req: Request, res: Response, 
 
     }catch (error:any) {
         console.log(error);
-        res.send({message: error.message})
+        res.status(409).send({message: error.message})
         
     }
 };
