@@ -90,9 +90,9 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             else {
                 if (password != undefined) {
                     try {
-                        bcryptjs_1.default.compare(password, user.password).then((same) => {
-                            switch (same) {
-                                case same:
+                        bcryptjs_1.default.compare(password, user.password).then((result) => {
+                            switch (result) {
+                                case result:
                                     if (SECRET != undefined) {
                                         const token = jsonwebtoken_1.default.sign({ email, userName }, SECRET, { expiresIn: "128h" });
                                         console.log(token);
@@ -102,7 +102,7 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
                                         });
                                     }
                                     break;
-                                case !same:
+                                case !result:
                                     res.status(400).send({ message: 'invalid password', status: false });
                                 default:
                                     break;
